@@ -23,7 +23,7 @@ RSpec.describe Redbus do
     endpoints = Redbus::Support.registered_endpoints
     expect(endpoints.length).to eq(3)
     # ap endpoints
-    registrations = Redbus::Support.rendpoint_registrations
+    registrations = Redbus::Support.endpoint_registrations
     expect(registrations.length).to eq(3)
     # ap registrations
   end
