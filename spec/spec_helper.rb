@@ -1,4 +1,6 @@
 require "bundler/setup"
+require "redis"
+require "mock_redis"
 require "redbus"
 
 RSpec.configure do |config|
@@ -12,3 +14,10 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+# These will be in an initializer
+
+$redis = MockRedis.new
+Redis::Objects.redis = $redis
+$pubredis = $redis
+$subredis = $redis
