@@ -3,7 +3,6 @@
 module Redbus
   class Async
 
-
     # Asynchronous subscribe
     def self.subscribe_async(channels, callback=nil)
       Thread.new do

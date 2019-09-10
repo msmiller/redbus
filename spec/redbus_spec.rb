@@ -5,7 +5,7 @@ require 'awesome_print'
 RSpec.describe Redbus do
 
   before :each do
-    print " / "
+    # print " / "
   end
 
   it "has a version number" do
