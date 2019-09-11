@@ -21,6 +21,13 @@ module Redbus
       return result
     end
 
+    # Callbacks MUST be in the form Model::method
+    def self.parse_callback(s)
+      meth = s.demodulize
+      klass = s.deconstantize
+      return [klass.constantize, meth]
+    end
+
     #### Utility
 
     def self.dump_message(channel, msg)

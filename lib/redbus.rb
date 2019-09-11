@@ -1,8 +1,10 @@
-require 'redbus/version'
-require "redis-objects"
 require 'securerandom'
 require 'json'
+require 'active_support/inflector'
 
+require "redis-objects"
+
+require 'redbus/version'
 require 'redbus/support'
 require 'redbus/lpubsub'
 
