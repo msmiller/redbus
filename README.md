@@ -20,6 +20,12 @@ Or install it yourself as:
 
     $ gem install redbus
 
+## Features
+
+- Fan-out for interest-based channels
+- RPC mode calls which are blocking and wait for a return value
+- Central registration of channels and subscriptions
+
 ## Usage
 
 TODO: Write usage instructions here
@@ -33,6 +39,18 @@ Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
 Redbus.poll_delay = 0               # Delay between Redis polls(ms)
 Redbus.timeout = 5                  # Timeout on 1-shot subscribes(s)
 ```
+
+_Note that you can have multiple endpoints for a microservice. For instance you could have one for `@email` and one for `@sms`. But at the end of the day there isn't much gain. All you're doing is going from one callback with a switch to two callbacks. So for simplicity sake, just assume one primary endpoint name per app._
+
+## Channel Namespaces
+
+Redbus uses a Twitter-esque namespace pattern:
+
+`@channel` - this is an "endpoint", used for sending a message to a specific microservice. For instance, @email would be what an email service subscribes to and what a client would send to in order to send an email.
+
+`#channel` - this is for "interests". For instance, an email service would want to know about Agents and Offices to be able to find mail templates, so it would subscribe to [#agents, #offices] to be notified of any updates.
+
+`rpc.XXXXXXXXXXXXXXXX` - these are ad-hoc channels used for waiting for and sending RPC-like responses to requests. The channel name is created by MagicBus and destroyed once the round-trip is complete.
 
 ## Development
 

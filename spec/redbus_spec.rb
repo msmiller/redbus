@@ -87,7 +87,7 @@ RSpec.describe Redbus do
       expect(registrations.length).to eq(3)
     end
 
-    it "can register the current endpoints" do
+    it "can register the current endpoint" do
       Redbus::Registration.clear_registrations
       Redbus::Registration.register_endpoint
       endpoints = Redbus::Registration.registered_endpoints
