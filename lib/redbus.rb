@@ -13,6 +13,8 @@ module Redbus
 
   include Redis::Objects
 
+  #### CONFIG VARIABLES
+
   @@endpoint = "redbus#{rand(1000...9999)}"
   @@poll_delay = 0
   @@timeout = 5
@@ -41,6 +43,8 @@ module Redbus
     @@timeout = i
   end
 
+  #### END CONFIG VARIABLES
+  
   class Error < StandardError; end
   # Your code goes here...
 

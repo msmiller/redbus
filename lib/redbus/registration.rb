@@ -10,6 +10,8 @@ module Redbus
       $redis.set("endpoints:#{name}", Time.now)
     end
 
+    # TODO: self.unregister_endpoint(name = "@#{Redbus.endpoint}")
+
     # This returns a list of the endpoint keys
     def self.registered_endpoints
       $redis.keys("endpoints:*").map{ |ep| key_to_endpoint(ep) }

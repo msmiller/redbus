@@ -37,6 +37,29 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+***Basic use case***
+```ruby
+# Rig a callback
+class Kallback
+  def self.dump(*args)
+    x = { :channel => args[0], :data => args[1] }
+    ap x
+  end
+end
+
+# Set the app's endpoint
+Redbus.endpoint = "my_endpoint"
+
+# Register the endpoint
+Redbus::Registration.register_endpoint
+# Register interests
+Redbus::Registration.register_interest('#users')
+Redbus::Registration.register_interest('#views')
+
+# Bulk subscribe to everything registered for
+Redbus::Lpubsub.subscribe_all( "@test", "Kallback::stash" )
+```
+
 ## Configuration
 
 In `.../config/initializers/redbus.rb` you can set the following:
@@ -44,6 +67,7 @@ In `.../config/initializers/redbus.rb` you can set the following:
 ```ruby
 # Required
 Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
+                                    # Note: the '@' prefix isn't required
 # Optional
 Redbus.poll_delay = 0               # Delay between Redis polls(ms)
 Redbus.timeout = 5                  # Timeout on 1-shot subscribes(s)
