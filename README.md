@@ -47,6 +47,11 @@ class Kallback
   end
 end
 
+# Rig Redis - you need different connections for pub and sub
+$redis = Redis.new
+$pubredis = Redis.new
+$subredis = Redis.new
+
 # Set the app's endpoint
 Redbus.endpoint = "my_endpoint"
 
@@ -57,7 +62,7 @@ Redbus::Registration.register_interest('#users')
 Redbus::Registration.register_interest('#views')
 
 # Bulk subscribe to everything registered for
-Redbus::Lpubsub.subscribe_all( "@test", "Kallback::stash" )
+Redbus::Lpubsub.subscribe_all( "Kallback::dump" )
 ```
 
 ## Configuration
