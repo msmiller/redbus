@@ -1,8 +1,6 @@
 # Redbus
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/redbus`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
 ## Installation
 
@@ -23,6 +21,10 @@ Or install it yourself as:
 ## Usage
 
 TODO: Write usage instructions here
+
+## Configuration
+
+TODO: Write config instructions here
 
 ## Development
 

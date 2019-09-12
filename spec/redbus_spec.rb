@@ -49,6 +49,15 @@ RSpec.describe Redbus do
       expect(Redbus::VERSION).not_to be nil
     end
 
+    it "can load default config" do
+      expect(Redbus.timeout).to eq(5)
+    end
+
+    it "can set default config" do
+      Redbus.endpoint = "foobar"
+      expect(Redbus.endpoint).to eq("foobar")
+    end
+
     it "can generate a rpc_token" do
       expect(Redbus::Support.rpc_token).to_not be nil
     end
