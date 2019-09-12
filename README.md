@@ -1,8 +1,6 @@
 # Redbus
 
-<p style="text-align: center">
-    ![alt text](redbus.jpg)
-</p>
+->![alt text](redbus.jpg)<-
 
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
