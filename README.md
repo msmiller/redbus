@@ -2,6 +2,8 @@
 
 ![Red Bus](redbus.jpg)
 
+| x | y |
+
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
 ## Installation
@@ -34,8 +36,10 @@ TODO: Write usage instructions here
 
 In `.../config/initializers/redbus.rb` you can set the following:
 
-```
+```ruby
+# Required
 Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
+# Optional
 Redbus.poll_delay = 0               # Delay between Redis polls(ms)
 Redbus.timeout = 5                  # Timeout on 1-shot subscribes(s)
 ```
