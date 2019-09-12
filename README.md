@@ -8,6 +8,15 @@
 
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
+## Features
+
+- Fan-out for interest-based channels
+- RPC mode calls which are blocking and wait for a return value
+- Central registration of channels and subscriptions
+- Twitter-esque channel namespace to differentiate "endpoints" from "interests"
+- Uses BLPOP so that only one server in an app cluster processes a message
+- Redis-based inter-service comms means no security issues, no authentication hassles, and no possibility for exposed HTTP endpoints
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -23,12 +32,6 @@ And then execute:
 Or install it yourself as:
 
     $ gem install redbus
-
-## Features
-
-- Fan-out for interest-based channels
-- RPC mode calls which are blocking and wait for a return value
-- Central registration of channels and subscriptions
 
 ## Usage
 
