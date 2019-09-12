@@ -5,21 +5,6 @@ module Redbus
       "rpc." + SecureRandom.urlsafe_base64(nil, false)
     end
 
-    #### Registering endpoints when services boot up
-
-    def self.register_endpoint(name)
-      $redis.set("endpoints:#{name}", Time.now)
-    end
-
-    def self.registered_endpoints
-      $redis.keys("endpoints:*").map{ |ep| ep.gsub('endpoints:', '@') }
-    end
-
-    def self.endpoint_registrations
-      result = {}
-      $redis.keys("endpoints:*").map{ |ep| result[ep.gsub('endpoints:', '@')] = $redis.get(ep) }
-      return result
-    end
 
     # Callbacks MUST be in the form Model::method
     def self.parse_callback(s)

@@ -6,6 +6,7 @@ require "redis-objects"
 
 require 'redbus/version'
 require 'redbus/support'
+require 'redbus/registration'
 require 'redbus/lpubsub'
 
 module Redbus

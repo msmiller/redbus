@@ -54,27 +54,110 @@ RSpec.describe Redbus do
     end
 
     it "can set default config" do
+      old_enpoint = Redbus.endpoint
       Redbus.endpoint = "foobar"
       expect(Redbus.endpoint).to eq("foobar")
+      Redbus.endpoint = old_enpoint
+      expect(Redbus.endpoint).to eq(old_enpoint)
     end
 
     it "can generate a rpc_token" do
       expect(Redbus::Support.rpc_token).to_not be nil
     end
 
+  end # support functions
+
+  context "registration functions" do
+
     it "can register endpoints" do
-      Redbus::Support.register_endpoint('webhook')
-      Redbus::Support.register_endpoint('email')
-      Redbus::Support.register_endpoint('sms')
-      endpoints = Redbus::Support.registered_endpoints
-      expect(endpoints.length).to eq(3)
+      Redbus::Registration.clear_registrations
+      registrations = Redbus::Registration.endpoint_registrations
+      expect(registrations.length).to eq(0)
+
+      Redbus::Registration.register_endpoint('@webhook')
+      Redbus::Registration.register_endpoint('@email')
+      Redbus::Registration.register_endpoint('@sms')
+
+      endpoints = Redbus::Registration.registered_endpoints
       # ap endpoints
-      registrations = Redbus::Support.endpoint_registrations
-      expect(registrations.length).to eq(3)
+      expect(endpoints.length).to eq(3)
+
+      registrations = Redbus::Registration.endpoint_registrations
       # ap registrations
+      expect(registrations.length).to eq(3)
     end
 
-  end # support functions
+    it "can register the current endpoints" do
+      Redbus::Registration.clear_registrations
+      Redbus::Registration.register_endpoint
+      endpoints = Redbus::Registration.registered_endpoints
+
+      expect(endpoints.length).to eq(1)
+      expect(endpoints[0]).to eq("@#{Redbus.endpoint}")
+    end
+
+    it "can register interests" do
+      Redbus::Registration.clear_registrations
+      registrations = Redbus::Registration.endpoint_registrations
+      expect(registrations.length).to eq(0)
+
+      Redbus::Registration.register_interest('#webhook')
+      Redbus::Registration.register_interest('#email')
+      Redbus::Registration.register_interest('#sms')
+
+      interests = Redbus::Registration.registered_interests
+      # ap interests
+      expect(interests.length).to eq(3)
+
+      registrations = Redbus::Registration.interest_registrations
+      # ap registrations
+      expect(registrations.length).to eq(3)
+    end
+
+    it "can get a subscribe list" do
+      Redbus::Registration.clear_registrations
+      registrations = Redbus::Registration.endpoint_registrations
+      expect(registrations.length).to eq(0)
+
+      Redbus::Registration.register_endpoint('@webhook')
+      Redbus::Registration.register_endpoint('@email')
+      Redbus::Registration.register_endpoint('@sms')
+
+      Redbus::Registration.register_interest('#users')
+      Redbus::Registration.register_interest('#views')
+
+      subscribe_list = Redbus::Registration.subscribe_list
+      # ap subscribe_list
+      expect(subscribe_list.length).to eq(5)
+
+    end
+
+    it "can get a fanout list" do
+      Redbus::Registration.clear_registrations
+      registrations = Redbus::Registration.endpoint_registrations
+      expect(registrations.length).to eq(0)
+
+      Redbus::Registration.register_endpoint('@webhook')
+      Redbus::Registration.register_endpoint('@email')
+      Redbus::Registration.register_endpoint('@sms')
+
+      Redbus::Registration.register_interest('#users')
+      Redbus::Registration.register_interest('#views')
+
+      # Add another endpoint's worth of stuff
+      old_enpoint = Redbus.endpoint
+      Redbus.endpoint = "foobar"
+      Redbus::Registration.register_interest('#users')
+      Redbus::Registration.register_interest('#views')
+      Redbus.endpoint = old_enpoint
+
+      fanout_list = Redbus::Registration.fanout_list("#users")
+      # ap fanout_list
+      expect(fanout_list.length).to eq(2)
+
+    end
+
+  end # registration functions
 
   context "lpubsub" do
 
@@ -104,16 +187,16 @@ RSpec.describe Redbus do
       # Redbus::Lpubsub.subscribe_once( "@test", "Kallback::dump" )
     end
 
-    it "can handle subscribe timeout" do
-      ap Kallback.chan
-      ap Kallback.mesg
-      #Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      expect($pubredis.llen("@test")).to eq(0)
-      ap Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
-      ap Kallback.chan
-      ap Kallback.mesg
-      # Redbus::Lpubsub.subscribe_once( "@test", "Kallback::dump" )
-    end
+####    it "can handle subscribe timeout" do
+####      ap Kallback.chan
+####      ap Kallback.mesg
+####      #Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
+####      expect($pubredis.llen("@test")).to eq(0)
+####      ap Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
+####      ap Kallback.chan
+####      ap Kallback.mesg
+####      # Redbus::Lpubsub.subscribe_once( "@test", "Kallback::dump" )
+####    end
 
   end # lpubsub
 
