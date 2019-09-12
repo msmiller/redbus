@@ -24,7 +24,13 @@ TODO: Write usage instructions here
 
 ## Configuration
 
-TODO: Write config instructions here
+In `.../config/initializers/redbus.rb` you can set the following:
+
+```
+Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
+Redbus.poll_delay = 0               # Delay between Redis polls(ms)
+Redbus.timeout = 5                  # Timeout on 1-shot subscribes(s)
+```
 
 ## Development
 
