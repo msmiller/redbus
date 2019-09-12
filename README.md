@@ -1,6 +1,6 @@
 # Redbus
 
-<p align="center"><div>
+<p align="center"><div align="center">
 
 ![Red Bus](redbus.jpg)
 
