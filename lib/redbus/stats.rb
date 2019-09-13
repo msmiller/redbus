@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-12 20:42:13
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-12 20:44:19
+# @Last Modified time: 2019-09-12 21:01:45
 #
 # Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
 
@@ -14,8 +14,6 @@
 
 module Redbus
   class Stats
-
-
 
   end
 end

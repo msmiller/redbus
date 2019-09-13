@@ -18,6 +18,5 @@ end
 # These will be in an initializer
 
 $redis = MockRedis.new
-Redis::Objects.redis = $redis
 $pubredis = $redis
 $subredis = $redis
