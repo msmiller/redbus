@@ -16,6 +16,7 @@ Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and
 - Twitter-esque channel namespace to differentiate "endpoints" from "interests"
 - Uses BLPOP so that only one server in an app cluster processes a message
 - Redis-based inter-service comms means no security issues, no authentication hassles, and no possibility for exposed HTTP endpoints
+- Simple on-board stats to monitor overall health of the bus
 
 ## Installation
 
