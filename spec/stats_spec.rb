@@ -37,7 +37,6 @@ RSpec.describe Redbus::Stats do
       expect(counts.length).to eq(3)
       expect(counts["published"][yr][mo]).to eq(1)
       expect(counts["processed"][yr][mo]).to eq(2)
-      ap counts["processed"]
       expect(counts["failed"][yr][mo]).to eq(3)
     end
 

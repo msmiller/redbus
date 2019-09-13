@@ -10,11 +10,17 @@ require 'redbus/stats'
 
 module Redbus
 
-  #### CONFIG VARIABLES
-
   @@endpoint = "redbus#{rand(1000...9999)}"
   @@poll_delay = 0
   @@timeout = 5
+
+  # Use this to switch between LIST-based and traditional PUBSUB-based
+  # Note: for now the PUBSUB code is unsupported
+  PUBLISH_MODE = Redbus::Lpubsub
+
+  class Error < StandardError; end
+
+  #### CONFIG VARIABLES
 
   def self.endpoint
     @@endpoint
@@ -42,7 +48,12 @@ module Redbus
 
   #### END CONFIG VARIABLES
 
-  class Error < StandardError; end
-  # Your code goes here...
+  #### PUBLIC FUNCTIONS
+
+  def self.publish(channels, data)
+    PUBLISH_MODE.publish(channels, data)
+  end
+
+  #### END PUBLIC FUNCTIONS
 
 end
