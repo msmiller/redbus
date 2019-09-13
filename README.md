@@ -66,6 +66,20 @@ Redbus::Registration.register_interest('#views')
 Redbus::Lpubsub.subscribe_all( "Kallback::dump" )
 ```
 
+***Stats***
+
+To gather the `published`, `processed`, and `failed` stats for a channel you do the following:
+
+```
+counts = Redbus::Stats.counts_for( "@test1" )
+p counts['published'] # =>
+{
+  2019 => {
+    8 => 12,
+    9 => 2
+  }
+}
+```
 ## Configuration
 
 In `.../config/initializers/redbus.rb` you can set the following:
@@ -91,20 +105,6 @@ Redbus uses a Twitter-esque namespace pattern:
 
 `rpc.XXXXXXXXXXXXXXXX` - these are ad-hoc channels used for waiting for and sending RPC-like responses to requests. The channel name is created by MagicBus and destroyed once the round-trip is complete.
 
-#### Stats
-
-To gather the `published`, `processed`, and `failed` stats for a channel you do the following:
-
-```
-counts = Redbus::Stats.counts_for( "@test1" )
-p counts['published'] # =>
-{
-  2019 => {
-    8 => 12,
-    9 => 2
-  }
-}
-```
 
 ## Development
 
