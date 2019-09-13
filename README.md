@@ -91,6 +91,21 @@ Redbus uses a Twitter-esque namespace pattern:
 
 `rpc.XXXXXXXXXXXXXXXX` - these are ad-hoc channels used for waiting for and sending RPC-like responses to requests. The channel name is created by MagicBus and destroyed once the round-trip is complete.
 
+#### Stats
+
+To gather the `published`, `processed`, and `failed` stats for a channel you do the following:
+
+```
+counts = Redbus::Stats.counts_for( "@test1" )
+p counts['published'] # =>
+{
+  2019 => {
+    8 => 12,
+    9 => 2
+  }
+}
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
