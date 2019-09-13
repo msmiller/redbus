@@ -26,12 +26,17 @@ RSpec.describe Redbus do
 
   end # gem config
 
-  context "PUBLISH_MODE pass through" do
+  context "PUBLISH_MODE pass through (Redbus.pubish, ...)" do
 
     it "can publish to a channel" do
       expect($pubredis.llen("@test")).to eq(0)
       Redbus.publish( "@test", { "foo" => "bar" } )
       expect($pubredis.llen("@test")).to eq(1)
+    end
+
+    it "can subscribe_once" do
+      Redbus.publish( "@test", { "foo" => "bar" } )
+      Redbus.subscribe_once( "@test", "Kallback::stash" )
     end
 
   end # gem config

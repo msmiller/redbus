@@ -20,10 +20,10 @@ RSpec.describe Redbus::Stats do
       expect(z).to eq(3)
     end
 
-    it "can clear channel stats" do
+    it "can clear channel stats (Use data left from prior test)" do
       count_keys = $redis.keys( "stats:*" )
       expect(count_keys.length).to eq(3)
-      puts "    (Clear data left from prior test ...)"
+      # Clear data left from prior test
       Redbus::Stats.clear( "@test1" )
       count_keys = $redis.keys( "stats:*" )
       expect(count_keys.length).to eq(0)

@@ -1,37 +1,6 @@
 require 'redis'
 require 'awesome_print'
 
-class Kallback
-
-  @@chan = nil
-  @@mesg = nil
-
-  def self.chan
-    @@chan
-  end
-
-  def self.mesg
-    @@mesg
-  end
-
-  def self.reset_globals
-    @@chan = nil
-    @@mesg = nil
-  end
-
-  ####
-
-  def self.dump(*args)
-    x = { :channel => args[0], :data => args[1] }
-    ap x
-  end
-
-  def self.stash(*args)
-    @@chan = args[0]
-    @@mesg = args[1]
-  end
-end
-
 RSpec.describe Redbus::Lpubsub do
 
   before :each do

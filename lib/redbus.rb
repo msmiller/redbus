@@ -54,6 +54,10 @@ module Redbus
     PUBLISH_MODE.publish(channels, data)
   end
 
+  def self.subscribe_once(channel, callback=nil)
+    PUBLISH_MODE.subscribe_once(channel, callback)
+  end
+
   #### END PUBLIC FUNCTIONS
 
 end
