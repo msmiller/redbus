@@ -9,7 +9,18 @@ module Redbus
 
     # Fire-and-forget publish
     def self.publish(channels, data)
+      channel_list = []
       channels.gsub(/\s+/, "").split(',').each do |c|
+        # If it's an interest, publish to fan-out list
+        if c.include? '#'
+          channel_list += Redbus::Registration.fanout_list(c)
+        else
+          channel_list += [ c ]
+        end
+      end
+p "PUBLISHING TO: #{channel_list}"
+      channel_list.each do |c|
+p "---> #{c}"
         $pubredis.lpush c, data.to_json
       end
     end
@@ -37,7 +48,8 @@ module Redbus
 
     # Usage: Redbus.subscribe_async(Redbus::Registration.subscribe_list, Class::callback)
     def self.subscribe_async(channels, callback=nil)
-
+p "SUBSCRIBE ASYNC:"
+puts channels.to_s
       if callback
         klass,methud = Redbus::Support.parse_callback(callback)
         return false if methud.nil?
@@ -45,10 +57,10 @@ module Redbus
 
       Thread.new do
         while(true)
-          #cp "IN WHILE"
+p "IN WHILE"
           # chan,msg = $subredis.blpop(channels, :timeout => 5)
           chan,msg = $subredis.blpop(channels, :timeout => Redbus.timeout)
-          # p "POP #{chan} #{msg}"
+p "POP #{chan} #{msg}"
           if msg.nil?
             # TIMEOUT - msg will be nil
           else
@@ -68,7 +80,10 @@ module Redbus
       end # Thread
     end
 
-
+    # Shortcut to subscribe to everything registered
+    def self.subscribe_all(callback=nil)
+      Redbus.subscribe_async(Redbus::Registration.subscribe_list, callback)
+    end
 
   end
 end

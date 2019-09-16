@@ -34,13 +34,18 @@ module Redbus
 
     # This returns a list of the interests keys
     def self.registered_interests
-      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ep| key_to_interest(ep) }
+      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| key_to_interest(ip) }
+    end
+
+    # This returns a list of the interests keys
+    def self.registered_channel_interests(channel)
+      $redis.keys("interests:#{channel}:*").map{ |ip| key_to_interest(ip) }
     end
 
     # This is a hash which includes the timestamp the interests was registered at
     def self.interest_registrations
       result = {}
-      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ep| result[key_to_interest(ep)] = $redis.get(ep) }
+      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| result[key_to_interest(ip)] = $redis.get(ip) }
       return result
     end
 
@@ -60,11 +65,7 @@ module Redbus
     # ########
     # Build the fan-out list to LPUSH to for an interest
     def self.fanout_list(channel)
-      interests = registered_interests.map { |k| "#{k}_#{Redbus.endpoint}" }
-
-      interests = $redis.keys("interests:#{channel}:*") #.map{ |ep| result[key_to_interest(ep)] = $redis.get(channel) }
-      interests = interests.map { |k| k.gsub("interests:", "").gsub("#{channel}:", "#{channel}_") }
-
+      interests = registered_channel_interests(channel).map { |k| "#{k}_#{Redbus.endpoint}" }
       return(interests)
     end
 

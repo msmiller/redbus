@@ -58,6 +58,14 @@ module Redbus
     PUBLISH_MODE.subscribe_once(channel, callback)
   end
 
+  def self.subscribe_async(channels, callback=nil)
+    PUBLISH_MODE.subscribe_async(channels, callback)
+  end
+
+  def self.subscribe_all(callback=nil)
+    PUBLISH_MODE.subscribe_all(callback)
+  end
+
   #### END PUBLIC FUNCTIONS
 
 end

@@ -44,7 +44,7 @@ RSpec.describe Redbus::Lpubsub do
       expect(result).to be nil
     end
 
-    it "can subscribe_async" do
+    it "can subscribe_async to endpoints" do
       # Register the endpoints
       Redbus::Registration.register_endpoint("@test1")
       Redbus::Registration.register_endpoint("@test2")
@@ -70,6 +70,42 @@ RSpec.describe Redbus::Lpubsub do
       expect(Kallback.stash_stack.length).to eq(3)
       expect(Kallback.stash_stack[0][0]).to eq("@test1")
       expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
+    end
+
+    it "can subscribe_async to interests" do
+      # Register the endpoints
+      Redbus::Registration.register_interest("#users")
+      Redbus::Registration.register_interest("#accounts")
+      Redbus::Registration.register_endpoint("@EXIT")
+
+      # Publish some data, including the exit message
+      Redbus::Lpubsub.publish( "#users",  { "foo" => "bar" } )
+      Redbus::Lpubsub.publish( "#accounts", { "ack" => "oop" } )
+      Redbus::Lpubsub.publish( "@EXIT", {  } )
+      expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(1)
+      expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(1)
+      expect($pubredis.llen("@EXIT")).to eq(1)
+
+      # GO!
+puts ''
+puts ''
+puts ''
+p "SUBSCRIBED TO: #{Redbus::Registration.subscribe_list} "
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
+      # DONE!
+      sleep(0.1)
+p $pubredis.llen("#users_#{Redbus.endpoint}")
+p $pubredis.llen("#accounts_#{Redbus.endpoint}")
+p $pubredis.llen("@EXIT")
+
+      expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(0)
+      expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(0)
+      expect($pubredis.llen("@EXIT")).to eq(0)
+
+      # Now lets check the results ...
+      expect(Kallback.stash_stack.length).to eq(3)
+      # expect(Kallback.stash_stack[0][0]).to eq("@test1")
+      # expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
     end
 
   end # lpubsub
