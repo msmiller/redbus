@@ -38,8 +38,6 @@ module Redbus
     # Usage: Redbus.subscribe_async(Redbus::Registration.subscribe_list, Class::callback)
     def self.subscribe_async(channels, callback=nil)
 
-puts channels.to_s
-
       if callback
         klass,methud = Redbus::Support.parse_callback(callback)
         return false if methud.nil?
@@ -47,10 +45,10 @@ puts channels.to_s
 
       Thread.new do
         while(true)
-p "IN WHILE"
+          #cp "IN WHILE"
           # chan,msg = $subredis.blpop(channels, :timeout => 5)
-          chan,msg = $subredis.blpop(channels) #, :timeout => Redbus.timeout)
-p "POP #{chan} #{msg}"
+          chan,msg = $subredis.blpop(channels, :timeout => Redbus.timeout)
+          # p "POP #{chan} #{msg}"
           if msg.nil?
             # TIMEOUT - msg will be nil
           else

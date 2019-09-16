@@ -59,16 +59,17 @@ RSpec.describe Redbus::Lpubsub do
       expect($pubredis.llen("@test2")).to eq(1)
       expect($pubredis.llen("@EXIT")).to eq(1)
       # GO!
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stash" )
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
       # DONE!
       sleep(0.1)
       expect($pubredis.llen("@test1")).to eq(0)
       expect($pubredis.llen("@test2")).to eq(0)
       expect($pubredis.llen("@EXIT")).to eq(0)
 
-      # expect(result).not_to be nil
-      # json_result = JSON.parse(result)
-      # expect(json_result['foo']).to eq('bar')
+      # Now lets check the results ...
+      expect(Kallback.stash_stack.length).to eq(3)
+      expect(Kallback.stash_stack[0][0]).to eq("@test1")
+      expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
     end
 
   end # lpubsub

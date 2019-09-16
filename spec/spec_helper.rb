@@ -25,6 +25,9 @@ class Kallback
 
   @@chan = nil
   @@mesg = nil
+  @@stash_stack = []
+
+  DEBUG_ON = true
 
   def self.chan
     @@chan
@@ -34,9 +37,14 @@ class Kallback
     @@mesg
   end
 
+  def self.stash_stack
+    @@stash_stack
+  end
+
   def self.reset_globals
     @@chan = nil
     @@mesg = nil
+    @@stash_stack = []
   end
 
   ####
@@ -49,6 +57,15 @@ class Kallback
   def self.stash(*args)
     @@chan = args[0]
     @@mesg = args[1]
-    ap "#{@@chan} => #{@@mesg}"
+    puts  "stash :: #{@@chan} => #{@@mesg}" if DEBUG_ON
   end
+
+  def self.stashstack(*args)
+    @@chan = args[0]
+    @@mesg = args[1]
+    @@stash_stack << [ @@chan, @@mesg ]
+    puts  "stashstack :: #{@@chan} => #{@@mesg}" if DEBUG_ON
+    ap @@stash_stack if DEBUG_ON
+  end
+
 end
