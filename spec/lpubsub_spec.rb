@@ -6,6 +6,9 @@ RSpec.describe Redbus::Lpubsub do
   before :each do
     Kallback.reset_globals
     Redbus::Lpubsub.clear_channel("@test")
+    Redbus::Lpubsub.clear_channel("@test1")
+    Redbus::Lpubsub.clear_channel("@test2")
+    Redbus::Lpubsub.clear_channel("@EXIT")
   end
 
   context "lpubsub" do
@@ -27,25 +30,46 @@ RSpec.describe Redbus::Lpubsub do
     end
 
     it "can subscribe_once" do
-      #ap Kallback.chan
-      #ap Kallback.mesg
       Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
-      #ap Kallback.chan
-      #ap Kallback.mesg
-      # Redbus::Lpubsub.subscribe_once( "@test", "Kallback::dump" )
+      result = Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
+      expect(result).not_to be nil
+      json_result = JSON.parse(result)
+      expect(json_result['foo']).to eq('bar')
     end
 
-####    it "can handle subscribe timeout" do
-####      ap Kallback.chan
-####      ap Kallback.mesg
-####      #Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-####      expect($pubredis.llen("@test")).to eq(0)
-####      ap Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
-####      ap Kallback.chan
-####      ap Kallback.mesg
-####      # Redbus::Lpubsub.subscribe_once( "@test", "Kallback::dump" )
-####    end
+    # Mockredis will return nil right away if list empty
+    it "can handle subscribe timeout" do
+      expect($pubredis.llen("@test")).to eq(0)
+      result = Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
+      expect(result).to be nil
+    end
+
+    it "can subscribe_async" do
+      # Register the endpoints
+      Redbus::Registration.register_endpoint("@test1")
+      Redbus::Registration.register_endpoint("@test2")
+      Redbus::Registration.register_endpoint("@EXIT")
+
+      # Publish some data, including the exit message
+      Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
+      Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
+      Redbus::Lpubsub.publish( "@EXIT", {  } )
+
+      expect($pubredis.llen("@test1")).to eq(1)
+      expect($pubredis.llen("@test2")).to eq(1)
+      expect($pubredis.llen("@EXIT")).to eq(1)
+      # GO!
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stash" )
+      # DONE!
+      sleep(0.1)
+      expect($pubredis.llen("@test1")).to eq(0)
+      expect($pubredis.llen("@test2")).to eq(0)
+      expect($pubredis.llen("@EXIT")).to eq(0)
+
+      # expect(result).not_to be nil
+      # json_result = JSON.parse(result)
+      # expect(json_result['foo']).to eq('bar')
+    end
 
   end # lpubsub
 

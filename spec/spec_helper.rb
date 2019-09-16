@@ -1,6 +1,6 @@
 require "bundler/setup"
 require "redis"
-require "mock_redis"
+require "fakeredis"
 require "redbus"
 
 RSpec.configure do |config|
@@ -17,7 +17,7 @@ end
 
 # These will be in an initializer
 
-$redis = MockRedis.new
+$redis = Redis.new # Fakeredis
 $pubredis = $redis
 $subredis = $redis
 
@@ -49,5 +49,6 @@ class Kallback
   def self.stash(*args)
     @@chan = args[0]
     @@mesg = args[1]
+    ap "#{@@chan} => #{@@mesg}"
   end
 end

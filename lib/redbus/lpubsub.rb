@@ -15,40 +15,62 @@ module Redbus
     end
 
     # Synchronous subscribe to one channel for one message
+    # This will mainly be used for RPC functionality
     def self.subscribe_once(channel, callback=nil)
       if callback
         klass,methud = Redbus::Support.parse_callback(callback)
         return false if methud.nil?
       end
-      chan,msg = $subredis.blpop(channel, :timeout => 5)
-
-p "CHAN RESULT: #{chan} / #{chan.nil?}"
-      data = JSON.parse(msg)
-      if callback.nil?
-        Redbus::Support.dump_message(channel, msg)
+      chan,msg = $subredis.blpop(channel, :timeout => Redbus.timeout)
+      if msg.nil?
+        # TIMEOUT - msg will be nil
       else
-        klass.send(methud, chan, JSON.parse(msg))
-      end
-    end
-
-    # Synchronous subscribe to one channel
-    def self.subscribe(channel, callback=nil)
-p "in"
-x = $subredis.blpop(channel, :timeout => 5)
-ap x
-      $subredis.blpop(channel, :timeout => 5) do |on|
-        on.message do |channel, msg|
-
-          data = JSON.parse(msg)
-          ap data
-          if callback.nil?
-            Redbus::Support.dump_message(channel, msg)
-          else
-            eval("#{callback}(channel, msg)")
-          end
+        data = JSON.parse(msg)
+        if callback.nil?
+          Redbus::Support.dump_message(channel, msg)
+        else
+          klass.send(methud, chan, JSON.parse(msg))
         end
       end
+      return msg
     end
+
+    # Usage: Redbus.subscribe_async(Redbus::Registration.subscribe_list, Class::callback)
+    def self.subscribe_async(channels, callback=nil)
+
+puts channels.to_s
+
+      if callback
+        klass,methud = Redbus::Support.parse_callback(callback)
+        return false if methud.nil?
+      end
+
+      Thread.new do
+        while(true)
+p "IN WHILE"
+          # chan,msg = $subredis.blpop(channels, :timeout => 5)
+          chan,msg = $subredis.blpop(channels) #, :timeout => Redbus.timeout)
+p "POP #{chan} #{msg}"
+          if msg.nil?
+            # TIMEOUT - msg will be nil
+          else
+            data = JSON.parse(msg)
+            if callback.nil?
+              Redbus::Support.dump_message(channel, msg)
+            else
+              klass.send(methud, chan, JSON.parse(msg))
+            end
+          end
+          (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
+
+          # If we're in test mode, just run once
+          (Thread.exit) if (chan == '@EXIT')
+
+        end # while(true)
+      end # Thread
+    end
+
+
 
   end
 end
