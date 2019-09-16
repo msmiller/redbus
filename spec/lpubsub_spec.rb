@@ -73,24 +73,36 @@ RSpec.describe Redbus::Lpubsub do
     end
 
     it "can subscribe_async to interests" do
+
+p $pubredis.llen("#users_#{Redbus.endpoint}")
+p $pubredis.llen("#accounts_#{Redbus.endpoint}")
+p $pubredis.llen("@EXIT")
+
+
       # Register the endpoints
+      Redbus::Registration.register_endpoint("@EXIT")
       Redbus::Registration.register_interest("#users")
       Redbus::Registration.register_interest("#accounts")
-      Redbus::Registration.register_endpoint("@EXIT")
 
       # Publish some data, including the exit message
       Redbus::Lpubsub.publish( "#users",  { "foo" => "bar" } )
       Redbus::Lpubsub.publish( "#accounts", { "ack" => "oop" } )
-      Redbus::Lpubsub.publish( "@EXIT", {  } )
       expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(1)
       expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(1)
-      expect($pubredis.llen("@EXIT")).to eq(1)
-
+      # expect($pubredis.llen("@EXIT")).to eq(1)
+p $pubredis.llen("#users_#{Redbus.endpoint}")
+p $pubredis.llen("#accounts_#{Redbus.endpoint}")
+p $pubredis.llen("@EXIT")
       # GO!
 puts ''
+puts '----- GO -----'
 puts ''
-puts ''
+      Thread.new do
+        sleep(0.001)
+        Redbus::Lpubsub.publish( "@EXIT", {  } )
+      end
 p "SUBSCRIBED TO: #{Redbus::Registration.subscribe_list} "
+ap Redbus::Registration.subscribe_list
       Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
       # DONE!
       sleep(0.1)
