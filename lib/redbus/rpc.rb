@@ -2,9 +2,9 @@
 # @Author: msmiller
 # @Date:   2019-08-23 12:58:57
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:15:29
+# @Last Modified time: 2019-09-16 14:21:35
 #
-# Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
 module Redbus
   class Rpc

@@ -2,9 +2,9 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:15:34
+# @Last Modified time: 2019-09-16 14:21:35
 #
-# Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
 module Redbus
   class Registration

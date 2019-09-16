@@ -2,9 +2,9 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:15:05
+# @Last Modified time: 2019-09-16 14:21:34
 #
-# Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
 require 'securerandom'
 require 'json'

@@ -2,9 +2,9 @@
 # @Author: msmiller
 # @Date:   2019-09-12 20:42:13
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-13 12:04:32
+# @Last Modified time: 2019-09-16 14:21:34
 #
-# Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
 # This module saves stats for sent, received, and errors for each channel. Just basic
 # stuff so it's possible to monitor how the bus is doing in braod strokes.
