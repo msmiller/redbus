@@ -1,3 +1,11 @@
+#!/usr/bin/ruby
+# @Author: msmiller
+# @Date:   2019-09-16 14:10:55
+# @Last Modified by:   msmiller
+# @Last Modified time: 2019-09-16 14:15:39
+#
+# Copyright (c) 2017-2018 Sharp Stone Codewerks / Mark S. Miller
+
 # This is for pub/sub and wait with specific messages
 
 module Redbus
@@ -74,7 +82,7 @@ p "POP #{chan} #{msg}"
           (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
 
           # If we're in test mode, just run once
-          (Thread.exit) if (chan == '@EXIT')
+          (Thread.exit) if ((chan == '@EXIT') && (Rails.env == 'test'))
 
         end # while(true)
       end # Thread

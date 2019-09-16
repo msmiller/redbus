@@ -45,6 +45,8 @@ RSpec.describe Redbus::Lpubsub do
     end
 
     it "can subscribe_async to endpoints" do
+
+      ap Rails.env
       # Register the endpoints
       Redbus::Registration.register_endpoint("@test1")
       Redbus::Registration.register_endpoint("@test2")

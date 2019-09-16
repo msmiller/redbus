@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Redis-based microservice communications bus.}
   spec.description   = %q{Redis-based microservice communications bus.}
-  spec.homepage      = "https://github.com/rently-com/redbus"
+  spec.homepage      = "https://github.com/msmiller/redbus"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'

@@ -69,3 +69,11 @@ class Kallback
   end
 
 end
+
+class Rails
+
+  def self.env
+    "test"
+  end
+
+end
