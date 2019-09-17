@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:21:35
+# @Last Modified time: 2019-09-17 11:49:32
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -67,23 +67,25 @@ puts channels.to_s
         while(true)
 p "IN WHILE"
           # chan,msg = $subredis.blpop(channels, :timeout => 5)
-          chan,msg = $subredis.blpop(channels, :timeout => Redbus.timeout)
-p "POP #{chan} #{msg}"
-          if msg.nil?
-            # TIMEOUT - msg will be nil
-          else
-            data = JSON.parse(msg)
-            if callback.nil?
-              Redbus::Support.dump_message(channel, msg)
+          begin
+            chan,msg = $subredis.blpop(channels, :timeout => Redbus.timeout)
+  p "POP #{chan} #{msg}"
+            if msg.nil?
+              # TIMEOUT - msg will be nil
             else
-              klass.send(methud, chan, JSON.parse(msg))
+              data = JSON.parse(msg)
+              if callback.nil?
+                Redbus::Support.dump_message(channel, msg)
+              else
+                klass.send(methud, chan, JSON.parse(msg))
+              end
             end
+            (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
+
+            # If we're in test mode, just run once
+            (Thread.exit) if ((chan == '@EXIT') && (Rails.env == 'test'))
+          rescue
           end
-          (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
-
-          # If we're in test mode, just run once
-          (Thread.exit) if ((chan == '@EXIT') && (Rails.env == 'test'))
-
         end # while(true)
       end # Thread
     end
