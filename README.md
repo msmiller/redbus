@@ -82,15 +82,54 @@ p counts['published'] # =>
 ```
 ## Configuration
 
-In `.../config/initializers/redbus.rb` you can set the following:
+**NOTE:** _The initializer needs to be called `redis_bus.rb` so that it loads after `redis.rb`.__
+
+In `.../config/initializers/redis_bus.rb` you can set the configuration and the subscriptions. You then put your handler model in `.../lib`,
 
 ```ruby
+# .../config/initializers/redis_bus.rb
+#
 # Required
 Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
                                     # Note: the '@' prefix isn't required
 # Optional
 Redbus.poll_delay = 0               # Delay between Redis polls(ms)
 Redbus.timeout = 5                  # Timeout on 1-shot subscribes(s)
+
+# Register defined endpoint and interests
+Redbus::Registration.register_endpoint
+Redbus::Registration.register_interest("#posts")
+Redbus::Registration.register_interest("#users")
+
+# Now set up the listener, which runs in a backround thread
+Redbus.subscribe_async( 
+    Redbus::Registration.subscribe_list, "RedbusHandler::perform"
+)
+```
+
+Then set up your handler:
+
+```ruby
+# .../lib/redbus_handler.rb
+class RedbusHandler
+
+  def self.perform(*args)
+    channel = args[0]
+    payload = args[1]
+
+    case channel
+    when "@#{Redbus.endpoint}"
+      handle_endpoint(payload)
+    when '#posts'
+      handle_posts(payload)
+    when '#users'
+      handle_users(payload)
+    else
+      # Throw and error or something ...
+    end
+  end
+
+end
 ```
 
 _Note that you can have multiple endpoints for a microservice. For instance you could have one for `@email` and one for `@sms`. But at the end of the day there isn't much gain. All you're doing is going from one callback with a switch to two callbacks. So for simplicity sake, just assume one primary endpoint name per app._

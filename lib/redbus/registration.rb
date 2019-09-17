@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:21:35
+# @Last Modified time: 2019-09-16 17:28:04
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -82,6 +82,12 @@ module Redbus
     def self.clear_registrations
       $redis.keys("endpoints:*").each{ |k| $redis.del(k) }
       $redis.keys("interests:*").each{ |k| $redis.del(k) }
+    end
+
+    # admin function for namespace changes
+    def self.remove_endpoint_regs(endpoint_name)
+      $redis.keys("endpoints:#{endpoint_name}").each{ |k| $redis.del(k) }
+      $redis.keys("interests:*:#{endpoint_name}").each{ |k| $redis.del(k) }
     end
 
     def self.key_to_endpoint(k)
