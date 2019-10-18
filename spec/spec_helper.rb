@@ -50,19 +50,18 @@ class Kallback
   ####
 
   def self.dump(*args)
-    x = { :channel => args[0], :data => args[1] }
+    @@chan, @@mesg = args
+    x = { :channel => @@chan, :data => @@mesg }
     ap x
   end
 
   def self.stash(*args)
-    @@chan = args[0]
-    @@mesg = args[1]
+    @@chan, @@mesg = args
     puts  "stash :: #{@@chan} => #{@@mesg}" if DEBUG_ON
   end
 
   def self.stashstack(*args)
-    @@chan = args[0]
-    @@mesg = args[1]
+    @@chan, @@mesg = args
     @@stash_stack << [ @@chan, @@mesg ]
     puts  "stashstack :: #{@@chan} => #{@@mesg}" if DEBUG_ON
     ap @@stash_stack if DEBUG_ON

@@ -114,8 +114,7 @@ Then set up your handler:
 class RedbusHandler
 
   def self.perform(*args)
-    channel = args[0]
-    payload = args[1]
+    channel,payload = args
 
     case channel
     when "@#{Redbus.endpoint}"
