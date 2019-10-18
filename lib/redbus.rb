@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:21:34
+# @Last Modified time: 2019-10-18 12:28:40
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -19,8 +19,8 @@ require 'redbus/stats'
 module Redbus
 
   @@endpoint = "redbus#{rand(1000...9999)}"
-  @@poll_delay = 0
-  @@timeout = 5
+  @@poll_delay = 0.2  # This throttles how often to ping Redbus when it's empty
+  @@timeout = 5       # This is the timeout for subsceribe_once
 
   # Use this to switch between LIST-based and traditional PUBSUB-based
   # Note: for now the PUBSUB code is unsupported

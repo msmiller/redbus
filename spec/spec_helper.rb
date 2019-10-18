@@ -18,8 +18,8 @@ end
 # These will be in an initializer
 
 $redis = Redis.new # Fakeredis
-$pubredis = $redis
-$subredis = $redis
+$pubredis = Redis.new
+$subredis = Redis.new
 
 class Kallback
 
@@ -27,7 +27,7 @@ class Kallback
   @@mesg = nil
   @@stash_stack = []
 
-  DEBUG_ON = true
+  DEBUG_ON = false
 
   def self.chan
     @@chan

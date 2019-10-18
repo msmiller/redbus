@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-17 13:27:17
+# @Last Modified time: 2019-10-18 12:34:12
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -63,8 +63,9 @@ module Redbus
         while(true)
           # chan,msg = $subredis.blpop(channels, :timeout => 5)
           begin
-            chan,msg = $subredis.blpop(channels, :timeout => 0.1) #Redbus.timeout)
-p "CHAN: #{chan}"
+            chan,msg = $subredis.blpop(channels, :timeout => Redbus.poll_delay)
+            # p "CHAN: #{chan}"
+            # p "MESG: #{msg}"
             if msg.nil?
               # TIMEOUT - msg will be nil
             else

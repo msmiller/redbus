@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-12 20:42:13
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-09-16 14:21:34
+# @Last Modified time: 2019-10-18 11:56:00
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -14,6 +14,8 @@
 #
 # NOTE: I'm not using the Redis hash here since we're mainly concerned with
 # storage speed, not with dumping results for some console.
+
+require 'date'
 
 module Redbus
   class Stats

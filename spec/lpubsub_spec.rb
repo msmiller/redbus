@@ -4,6 +4,7 @@ require 'awesome_print'
 RSpec.describe Redbus::Lpubsub do
 
   before :each do
+    $redis.flushall
     Kallback.reset_globals
     Redbus::Lpubsub.clear_channel("@test")
     Redbus::Lpubsub.clear_channel("@test1")
@@ -45,8 +46,6 @@ RSpec.describe Redbus::Lpubsub do
     end
 
     it "can subscribe_async to endpoints" do
-
-      ap Rails.env
       # Register the endpoints
       Redbus::Registration.register_endpoint("@test1")
       Redbus::Registration.register_endpoint("@test2")
@@ -55,15 +54,19 @@ RSpec.describe Redbus::Lpubsub do
       # Publish some data, including the exit message
       Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
       Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
-      Redbus::Lpubsub.publish( "@EXIT", {  } )
 
       expect($pubredis.llen("@test1")).to eq(1)
       expect($pubredis.llen("@test2")).to eq(1)
-      expect($pubredis.llen("@EXIT")).to eq(1)
+      expect($pubredis.llen("@EXIT")).to eq(0)
+      # This needs a delay so that the @EXIT is handled right
+      Thread.new do
+        sleep(0.25)
+        Redbus::Lpubsub.publish( "@EXIT", {  } )
+      end
       # GO!
       Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
-      # DONE!
-      sleep(0.1)
+      # DONE! (after @EXIT processed)
+      sleep(0.50)
       expect($pubredis.llen("@test1")).to eq(0)
       expect($pubredis.llen("@test2")).to eq(0)
       expect($pubredis.llen("@EXIT")).to eq(0)
@@ -88,17 +91,17 @@ RSpec.describe Redbus::Lpubsub do
 
       # We need to put a delay on the @EXIT command or it'll rip through so fast it errors out
       Thread.new do
-        sleep(0.001)
+        sleep(0.25)
         Redbus::Lpubsub.publish( "@EXIT", {  } )
       end
 
       Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
       # DONE! - wait a tick to let everything catch up
-      sleep(0.1)
+      sleep(0.50)
 
-p $pubredis.llen("#users_#{Redbus.endpoint}")
-p $pubredis.llen("#accounts_#{Redbus.endpoint}")
-p $pubredis.llen("@EXIT")
+      # p $pubredis.llen("#users_#{Redbus.endpoint}")
+      # p $pubredis.llen("#accounts_#{Redbus.endpoint}")
+      # p $pubredis.llen("@EXIT")
 
       expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(0)
       expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(0)
