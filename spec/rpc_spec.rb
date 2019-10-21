@@ -8,38 +8,47 @@ RSpec.describe Redbus::Lpubsub do
     $redis.flushdb
     Kallback.reset_globals
     # Redbus.timeout = 1
+    Redbus::Registration.register_endpoint("@test")
     Redbus::Lpubsub.clear_channel("@test")
-    Redbus::Lpubsub.clear_channel("@test1")
-    Redbus::Lpubsub.clear_channel("@test2")
     Redbus::Lpubsub.clear_channel("@EXIT")
   end
 
-  context "lpubsub" do
+  context "rpc" do
 
-    it "can publish to a channel" do
-      expect($pubredis.llen("@test")).to eq(0)
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      expect($pubredis.llen("@test")).to eq(1)
+    it "can do a basic RPC call" do
+
+      # Arm the RPC send
+      rpc_result = nil
+      sub_result = nil
+      Thread.new do
+        # Wait 1/10th of a second so the responder can spin up
+        sleep(0.1)
+        rpc_result = Redbus::Rpc.publish_rpc( "@test", { "foo" => "bar" } )
+      end
+
+      # This will handle the rpc request and send back data
+      $subredis.subscribe_with_timeout(Redbus.timeout, "@test") do |on|
+        on.message do |channel, msg|
+          data = JSON.parse(msg)
+          sub_result = data
+          $pubredis.publish data['rpc_token'], { ack: 'oop' }.to_json
+          $subredis.unsubscribe("@test")
+        end
+      end
+
+      sleep(0.2)
+
+p "----"
+p "rpc_result:"
+      ap rpc_result
+p "sub_result:"
+      ap sub_result
+      # expect(result).not_to be nil
+      # json_result = JSON.parse(result)
+      # expect(json_result['foo']).to eq('bar')
     end
 
-    it "can publish to a channel-list" do
-      expect($pubredis.llen("@test1")).to eq(0)
-      expect($pubredis.llen("@test2")).to eq(0)
-      Redbus::Lpubsub.publish( "@test1,@test2", { "foo" => "bar" } )
-      Redbus::Lpubsub.publish( "@test1,@test2", { "ack" => "oop" } )
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      expect($pubredis.llen("@test1")).to eq(2)
-      expect($pubredis.llen("@test2")).to eq(2)
-    end
-
-    it "can subscribe_once" do
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      result = Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
-      expect(result).not_to be nil
-      json_result = JSON.parse(result)
-      expect(json_result['foo']).to eq('bar')
-    end
-
+=begin
     # Mockredis will return nil right away if list empty
     it "can handle subscribe timeout" do
       expect($pubredis.llen("@test")).to eq(0)
@@ -57,28 +66,26 @@ RSpec.describe Redbus::Lpubsub do
       Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
       Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
 
-      expect($pubredis.llen("@EXIT")).to eq(0)
       expect($pubredis.llen("@test1")).to eq(1)
       expect($pubredis.llen("@test2")).to eq(1)
+      expect($pubredis.llen("@EXIT")).to eq(0)
       # This needs a delay so that the @EXIT is handled right
       Thread.new do
-        sleep(0.1)
+        sleep(0.25)
         Redbus::Lpubsub.publish( "@EXIT", {  } )
       end
       # GO!
       Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
       # DONE! (after @EXIT processed)
-      sleep(0.2)
+      sleep(0.50)
       expect($pubredis.llen("@test1")).to eq(0)
       expect($pubredis.llen("@test2")).to eq(0)
       expect($pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      ap Kallback.stash_stack
       expect(Kallback.stash_stack.length).to eq(3)
-      test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
-      expect(test1_stash).to_not be(nil)
-      expect(test1_stash[1]["foo"]).to eq("bar")
+      expect(Kallback.stash_stack[0][0]).to eq("@test1")
+      expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
     end
 
     it "can subscribe_async to interests" do
@@ -95,13 +102,13 @@ RSpec.describe Redbus::Lpubsub do
 
       # We need to put a delay on the @EXIT command or it'll rip through so fast it errors out
       Thread.new do
-        sleep(0.1)
+        sleep(0.25)
         Redbus::Lpubsub.publish( "@EXIT", {  } )
       end
 
       Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
       # DONE! - wait a tick to let everything catch up
-      sleep(0.2)
+      sleep(0.50)
 
       # p $pubredis.llen("#users_#{Redbus.endpoint}")
       # p $pubredis.llen("#accounts_#{Redbus.endpoint}")
@@ -116,7 +123,7 @@ RSpec.describe Redbus::Lpubsub do
       expect(Kallback.stash_stack[0][0]).to eq("#users_#{Redbus.endpoint}")
       expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
     end
-
+=end
   end # lpubsub
 
 end

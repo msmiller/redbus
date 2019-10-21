@@ -1,7 +1,9 @@
 require "bundler/setup"
 require "redis"
-require "fakeredis"
+# require "fakeredis"
 require "redbus"
+
+ENV["RAILS_ENV"] = "development"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -17,7 +19,7 @@ end
 
 # These will be in an initializer
 
-$redis = Redis.new # Fakeredis
+$redis = Redis.new
 $pubredis = Redis.new
 $subredis = Redis.new
 
@@ -76,3 +78,4 @@ class Rails
   end
 
 end
+

@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-18 12:34:12
+# @Last Modified time: 2019-10-21 12:01:14
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -58,14 +58,15 @@ module Redbus
         klass,methud = Redbus::Support.parse_callback(callback)
         return false if methud.nil?
       end
-
+p "ABOUT TO START THREAD:"
+ap  channels
       Thread.new do
         while(true)
           # chan,msg = $subredis.blpop(channels, :timeout => 5)
           begin
             chan,msg = $subredis.blpop(channels, :timeout => Redbus.poll_delay)
-            # p "CHAN: #{chan}"
-            # p "MESG: #{msg}"
+p "CHAN: #{chan}"
+p "MESG: #{msg}"
             if msg.nil?
               # TIMEOUT - msg will be nil
             else
