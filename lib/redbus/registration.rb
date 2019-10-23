@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-21 13:28:10
+# @Last Modified time: 2019-10-23 11:02:45
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -65,7 +65,8 @@ module Redbus
 
     def self.subscribe_list
       endpoints = registered_endpoints
-      interests = registered_interests.map { |k| "#{k}_#{Redbus.endpoint}" }
+      # interests = registered_interests.map { |k| "#{k}_#{Redbus.endpoint}" }
+      interests = registered_interests #.map { |k| "#{k}_#{Redbus.endpoint}" }
 
       return(endpoints + interests)
     end
@@ -73,7 +74,10 @@ module Redbus
     # ########
     # Build the fan-out list to LPUSH to for an interest
     def self.fanout_list(channel)
-      interests = registered_channel_interests(channel).map { |k| "#{k}_#{Redbus.endpoint}" }
+p ">>>> registered_channel_interests(channel) => #{registered_channel_interests(channel)}"
+      # interests = registered_channel_interests(channel).map { |k| "#{k}_#{Redbus.endpoint}" }
+      interests = registered_channel_interests(channel) #.map { |k| "#{k}_#{Redbus.endpoint}" }
+p ">>>> fanout_list => #{interests}"
       return(interests)
     end
 
@@ -95,7 +99,10 @@ module Redbus
     end
 
     def self.key_to_interest(k)
-      k.to_s.gsub('interests:', '').gsub(":#{Redbus.endpoint}", '')
+      keyarray = k.split(':')
+      "#{keyarray[1]}_#{keyarray[2]}"
+      # was:
+      # k.to_s.gsub('interests:', '').gsub(":#{Redbus.endpoint}", '')
     end
 
   end

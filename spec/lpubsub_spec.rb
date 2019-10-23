@@ -93,6 +93,10 @@ RSpec.describe Redbus::Lpubsub do
       expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(1)
       expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(1)
 
+p Redbus::Registration.fanout_list('#users')
+p Redbus::Registration.fanout_list('#accounts')
+
+
       # We need to put a delay on the @EXIT command or it'll rip through so fast it errors out
       Thread.new do
         sleep(0.1)
@@ -112,9 +116,9 @@ RSpec.describe Redbus::Lpubsub do
       expect($pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      expect(Kallback.stash_stack.length).to eq(3)
-      expect(Kallback.stash_stack[0][0]).to eq("#users_#{Redbus.endpoint}")
-      expect(Kallback.stash_stack[1][1]["ack"]).to eq("oop")
+      users_stash = Kallback.stash_stack.select{ |x| x[0] == "#users_#{Redbus.endpoint}"}.first
+      expect(users_stash).to_not be(nil)
+      expect(users_stash[1]["foo"]).to eq("bar")
     end
 
   end # lpubsub

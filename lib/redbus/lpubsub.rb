@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-21 12:01:14
+# @Last Modified time: 2019-10-23 11:07:10
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -22,6 +22,7 @@ module Redbus
         # If it's an interest, publish to fan-out list
         if c.include? '#'
           channel_list += Redbus::Registration.fanout_list(c)
+p "FANOUT LIST: #{channel_list}"
         else
           channel_list += [ c ]
         end
@@ -74,6 +75,7 @@ p "MESG: #{msg}"
               if callback.nil?
                 Redbus::Support.dump_message(channel, msg)
               else
+p "----> CALLING #{klass}::#{methud} for #{chan}"
                 klass.send(methud, chan, JSON.parse(msg))
               end
             end
