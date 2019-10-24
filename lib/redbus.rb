@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-24 11:51:41
+# @Last Modified time: 2019-10-24 14:18:40
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -16,6 +16,7 @@ require 'redbus/registration'
 require 'redbus/lpubsub'
 require 'redbus/stats'
 require 'redbus/rpc'
+require 'redbus/cachethru'
 
 module Redbus
 
@@ -74,6 +75,20 @@ module Redbus
 
   def self.subscribe_all(callback=nil)
     PUBLISH_MODE.subscribe_all(callback)
+  end
+
+  ###
+
+  def self.retrieve(item_class, item_id, channel, expire_at=nil)
+    Redbus::Cachethru.retrieve(item_class, item_id, channel, expire_at=nil)
+  end
+
+  def self.deposit(item, rpc_token=nil, expire_at=nil)
+    Redbus::Cachethru.deposit(item, rpc_token, expire_at=nil)
+  end
+
+  def self.cremove(item_class, item_id)
+    Redbus::Cachethru.remove(item_class, item_id)
   end
 
   #### END PUBLIC FUNCTIONS
