@@ -27,25 +27,26 @@ RSpec.describe Redbus::Lpubsub do
       end
 
       # This will handle the rpc request and send back data
-      $subredis.subscribe_with_timeout(Redbus.timeout, "@test") do |on|
-        on.message do |channel, msg|
-          data = JSON.parse(msg)
-          sub_result = data
-          $pubredis.publish data['rpc_token'], { ack: 'oop' }.to_json
-          $subredis.unsubscribe("@test")
-        end
+      chan, mesg = $subredis.blpop("@test") #, :timeout => Redbus.timeout)
+      if mesg
+        data = JSON.parse(mesg)
+        sub_result = data
+        $pubredis.publish data['rpc_token'], { ack: 'oop' }.to_json
       end
 
-      sleep(0.2)
+      # p "----"
+      # p "sub_result:"
+      # ap sub_result
+      # p "rpc_result:"
+      # ap rpc_result
+      # p "----"
 
-p "----"
-p "rpc_result:"
-      ap rpc_result
-p "sub_result:"
-      ap sub_result
-      # expect(result).not_to be nil
-      # json_result = JSON.parse(result)
-      # expect(json_result['foo']).to eq('bar')
+      # Wait a beat to let the threads unwind. This won't be needed in the wild, but since
+      # we're running tests locally it's so blazingly fast it creates race condition
+      sleep(0.25)
+
+      expect(rpc_result).not_to be nil
+      expect(rpc_result['ack']).to eq('oop')
     end
 
 =begin
