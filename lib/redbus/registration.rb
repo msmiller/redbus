@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-23 11:02:45
+# @Last Modified time: 2019-10-24 10:55:37
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -74,10 +74,7 @@ module Redbus
     # ########
     # Build the fan-out list to LPUSH to for an interest
     def self.fanout_list(channel)
-p ">>>> registered_channel_interests(channel) => #{registered_channel_interests(channel)}"
-      # interests = registered_channel_interests(channel).map { |k| "#{k}_#{Redbus.endpoint}" }
-      interests = registered_channel_interests(channel) #.map { |k| "#{k}_#{Redbus.endpoint}" }
-p ">>>> fanout_list => #{interests}"
+      interests = registered_channel_interests(channel)
       return(interests)
     end
 

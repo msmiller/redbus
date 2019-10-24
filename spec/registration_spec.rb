@@ -75,69 +75,29 @@ RSpec.describe Redbus::Registration do
 
     it "can get a fanout list" do
       Redbus::Registration.clear_registrations
-p "ENDPOINT: #{Redbus.endpoint}"
       registrations = Redbus::Registration.endpoint_registrations
       expect(registrations.length).to eq(0)
 
+      # Rig first endpoint
       Redbus::Registration.register_endpoint('@users')
-
       Redbus::Registration.register_interest('#users')
       Redbus::Registration.register_interest('#views')
-ap Redbus::Registration.registered_interests
-fanout_list = Redbus::Registration.fanout_list("#users")
-ap fanout_list
-ap Redbus::Registration.registered_channel_interests('#users')
-p "----"
+
       # Add another endpoint's worth of stuff
       old_enpoint = Redbus.endpoint
       Redbus.endpoint = "foobar"
       Redbus::Registration.register_interest('#users')
       Redbus::Registration.register_interest('#views')
       Redbus.endpoint = old_enpoint
-ap Redbus::Registration.registered_interests
-ap Redbus::Registration.registered_channel_interests('#users')
-p "----"
 
       fanout_list = Redbus::Registration.fanout_list("#users")
-ap fanout_list
-      expect(fanout_list.length).to eq(2)
+      # ap fanout_list
+      # There should be two endpoints for #users, one for each endpoint
+      expect( fanout_list.length ).to eq( 2 )
+      expect( fanout_list ).to include( "#users_foobar" )
+      expect( fanout_list ).to include( "#users_#{old_enpoint}" )
 
     end
-
-    it "debugs fanout list" do
-      Redbus::Registration.clear_registrations
-p "ENDPOINT: #{Redbus.endpoint}"
-      registrations = Redbus::Registration.endpoint_registrations
-      expect(registrations.length).to eq(0)
-
-      Redbus::Registration.register_endpoint('@users')
-
-      Redbus::Registration.register_interest('#users')
-      Redbus::Registration.register_interest('#views')
-ap Redbus::Registration.registered_interests
-fanout_list = Redbus::Registration.fanout_list("#users")
-ap fanout_list
-p ">>>>"
-ap Redbus::Registration.registered_interests
-ap Redbus::Registration.registered_channel_interests('#users')
-p "<<<<"
-      # Add another endpoint's worth of stuff
-      old_enpoint = Redbus.endpoint
-      Redbus.endpoint = "foobar"
-      Redbus::Registration.register_interest('#users')
-      Redbus::Registration.register_interest('#views')
-      Redbus.endpoint = old_enpoint
-p ">>>>"
-ap Redbus::Registration.registered_interests
-ap Redbus::Registration.registered_channel_interests('#users')
-p "<<<<"
-
-      fanout_list = Redbus::Registration.fanout_list("#users")
-ap fanout_list
-      expect(fanout_list.length).to eq(2)
-
-    end
-
 
   end # registration functions
 

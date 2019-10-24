@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-21 13:17:25
+# @Last Modified time: 2019-10-24 11:51:41
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -23,14 +23,10 @@ module Redbus
   @@poll_delay = 1    # This throttles how often to ping Redbus when it's empty
   @@timeout = 5       # This is the timeout for subscribe_once
 
-
-# p "ENV['RAILS_ENV'] : #{ENV['RAILS_ENV']}"
-# p ENV['RACK_ENV']
-# p ::Rails.env
-
   # Use this to switch between LIST-based and traditional PUBSUB-based
   # Note: for now the PUBSUB code is unsupported
   PUBLISH_MODE = Redbus::Lpubsub
+  CACHETHRU_KEY_ROOT = "redbuscache"
 
   class Error < StandardError; end
 
