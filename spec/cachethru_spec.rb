@@ -71,6 +71,43 @@ RSpec.describe Redbus::Cachethru do
       expect( cachethru_result.foo ).to eq( "bar" )
     end
 
+    it "can get a json hashed object across an rpc request" do
+
+      # set up
+      $redis.flushall
+      $redis.flushdb
+      Kallback.reset_globals
+      Redbus::Registration.register_endpoint("@test")
+      Redbus::Lpubsub.clear_channel("@test")
+
+      # Arm the cachethru send
+      cachethru_result = nil
+      Thread.new do
+        # Wait 1/10th of a second so the responder can spin up
+        sleep(0.1)
+        cachethru_result = Redbus::Cachethru.retrieve( 'Frodus', 5678, "@test" )
+      end
+
+      # This will handle the rpc request and send back data
+      chan, mesg = $subredis.blpop("@test") #, :timeout => Redbus.timeout)
+      if mesg
+        data = JSON.parse(mesg)
+        sub_result = data
+        f = Frodus.new
+        s = { 'id' => 2468, 'hashone' => 1, 'hashtwo' => 2 }.to_json
+        Redbus::Cachethru.deposit(f, data['rpc_token'], nil, s)
+      end
+
+      # Wait a beat to let the threads unwind. This won't be needed in the wild, but since
+      # we're running tests locally it's so blazingly fast it creates race condition
+      sleep(0.25)
+
+      # p "RESULT: "
+      # ap cachethru_result
+      expect( cachethru_result.id ).to eq( 2468 )
+      expect( cachethru_result.hashone ).to eq( 1 )
+      expect( cachethru_result.hashtwo ).to eq( 2 )
+    end
     it "can get remove a cached object" do
       # set up
       $redis.flushall

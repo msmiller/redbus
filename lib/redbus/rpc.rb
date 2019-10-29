@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-08-23 12:58:57
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-24 12:54:09
+# @Last Modified time: 2019-10-29 11:52:48
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -13,6 +13,7 @@ module Redbus
 
     # Publish a message and wait on a reply
     def self.publish_rpc(channel, data)
+      return(nil) if !Redbus.channel_is_endpoint?(channel)
       rpc_token = "rpc." + SecureRandom.urlsafe_base64(nil, false)
       Thread.new do
         sleep(0.1) # Give it a tick to let the subscribe code start running

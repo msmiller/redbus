@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-12 13:49:17
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-25 14:27:28
+# @Last Modified time: 2019-10-29 12:35:31
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -29,7 +29,7 @@ module Redbus
       base_redis_key = _base_redis_key(item)
       redis_key = _redis_key(item)
       if serialized.is_a?(String) # which also means !nil?
-        @json_hash = serialized
+        @json_hash = $redis.set(redis_key, serialized)
       else
         @json_hash = $redis.set(redis_key, item.to_json)
       end
@@ -48,6 +48,7 @@ module Redbus
     # to get attributes more or less as usual, but things like associations will require
     # building an object off of the result.to_h
     def self.retrieve(item_class, item_id, channel, expire_at=nil)
+      return(nil) if !Redbus.channel_is_endpoint?(channel)
       base_redis_key = _base_redis_key( {class: item_class, id: item_id} )
       redis_key = _redis_key( {class: item_class, id: item_id} )
 

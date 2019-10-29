@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-24 14:18:40
+# @Last Modified time: 2019-10-29 11:51:24
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -21,8 +21,8 @@ require 'redbus/cachethru'
 module Redbus
 
   @@endpoint = "redbus#{rand(1000...9999)}"
-  @@poll_delay = 1    # This throttles how often to ping Redbus when it's empty
-  @@timeout = 5       # This is the timeout for subscribe_once
+  @@poll_delay = 1    # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
+  @@timeout = 5       # This is the timeout for subscribe_once (fixnum:seconds)
 
   # Use this to switch between LIST-based and traditional PUBSUB-based
   # Note: for now the PUBSUB code is unsupported
@@ -58,6 +58,14 @@ module Redbus
   end
 
   #### END CONFIG VARIABLES
+
+  def self.channel_is_endpoint?(c)
+    '@' == c[0]
+  end
+
+  def self.channel_is_interest?(c)
+    '#' == c[0]
+  end
 
   #### PUBLIC FUNCTIONS
 
