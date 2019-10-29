@@ -66,7 +66,7 @@ RSpec.describe Redbus::Lpubsub do
         Redbus::Lpubsub.publish( "@EXIT", {  } )
       end
       # GO!
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, true, "Kallback::stashstack" )
       # DONE! (after @EXIT processed)
       sleep(0.2)
       expect($pubredis.llen("@test1")).to eq(0)
@@ -103,7 +103,7 @@ p Redbus::Registration.fanout_list('#accounts')
         Redbus::Lpubsub.publish( "@EXIT", {  } )
       end
 
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, "Kallback::stashstack" )
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, true, "Kallback::stashstack" )
       # DONE! - wait a tick to let everything catch up
       sleep(0.2)
 
@@ -121,6 +121,35 @@ p Redbus::Registration.fanout_list('#accounts')
       expect(users_stash[1]["foo"]).to eq("bar")
     end
 
+    it "can subscribe_async in inline mode" do
+      # Register the endpoints
+      Redbus::Registration.register_endpoint("@test1")
+      Redbus::Registration.register_endpoint("@test2")
+      Redbus::Registration.register_endpoint("@EXIT")
+
+      # Publish some data, including the exit message
+      Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
+      Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
+      # This needs a delay so that the @EXIT is handled right
+      Thread.new do
+        sleep(1)
+        Redbus::Lpubsub.publish( "@EXIT", {  } )
+      end
+
+      # GO!
+      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, false, "Kallback::stashstack" )
+      # DONE! (after @EXIT processed)
+      expect($pubredis.llen("@test1")).to eq(0)
+      expect($pubredis.llen("@test2")).to eq(0)
+      expect($pubredis.llen("@EXIT")).to eq(0)
+
+      # Now lets check the results ... should be the same as the endpoints test
+      ap Kallback.stash_stack
+      expect(Kallback.stash_stack.length).to eq(3)
+      test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
+      expect(test1_stash).to_not be(nil)
+      expect(test1_stash[1]["foo"]).to eq("bar")
+    end
   end # lpubsub
 
 end

@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-23 11:07:10
+# @Last Modified time: 2019-10-28 18:39:22
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -53,40 +53,61 @@ p "FANOUT LIST: #{channel_list}"
       return msg
     end
 
-    # Usage: Redbus.subscribe_async(Redbus::Registration.subscribe_list, Class::callback)
-    def self.subscribe_async(channels, callback=nil)
+    # Outer function for async subscribe so it can be run as either a thread inside a Rails server
+    # or as a standalone daemon launched from the shell
+    #
+    # Usage: Redbus.subscribe_async(Redbus::Registration.subscribe_list, true/false, Class::callback)
+    def self.subscribe_async(channels, threaded=true, callback=nil)
       if callback
         klass,methud = Redbus::Support.parse_callback(callback)
         return false if methud.nil?
       end
-p "ABOUT TO START THREAD:"
-ap  channels
-      Thread.new do
-        while(true)
-          # chan,msg = $subredis.blpop(channels, :timeout => 5)
-          begin
-            chan,msg = $subredis.blpop(channels, :timeout => Redbus.poll_delay)
+
+      if threaded
+        Thread.new do
+          do_subscribe_async(channels, true, callback)
+        end
+      else
+        p "INLINE START"
+        do_subscribe_async(channels, false, callback)
+        p "INLINE DONE"
+      end
+    end
+
+    # This is the main subscribe loop
+    def self.do_subscribe_async(channels, threaded=true, callback=nil)
+p "DO_SUBSCRIBE_ASYNC(#{channels}, #{threaded}, #{callback})"
+      klass,methud = Redbus::Support.parse_callback(callback)
+      while(true)
+        # chan,msg = $subredis.blpop(channels, :timeout => 5)
+        begin
+          chan,msg = $subredis.blpop(channels, :timeout => Redbus.poll_delay)
 p "CHAN: #{chan}"
 p "MESG: #{msg}"
-            if msg.nil?
-              # TIMEOUT - msg will be nil
+          if msg.nil?
+            # TIMEOUT - msg will be nil
+          else
+            data = JSON.parse(msg)
+            if callback.nil?
+              Redbus::Support.dump_message(channel, msg)
             else
-              data = JSON.parse(msg)
-              if callback.nil?
-                Redbus::Support.dump_message(channel, msg)
-              else
 p "----> CALLING #{klass}::#{methud} for #{chan}"
-                klass.send(methud, chan, JSON.parse(msg))
-              end
+              klass.send(methud, chan, JSON.parse(msg))
             end
-            # (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
-
-            # If we're in test mode, just run once
-            (Thread.exit) if ((chan == '@EXIT') && (Rails.env == 'test'))
-          rescue
           end
-        end # while(true)
-      end # Thread
+          # (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
+
+          # If we're in test mode, we need a clean way to bust out
+          if ((chan == '@EXIT') && (Rails.env == 'test'))
+            if threaded
+              (Thread.exit) 
+            else
+              break
+            end
+          end
+        rescue
+        end
+      end # while(true)
     end
 
     # Shortcut to subscribe to everything registered
