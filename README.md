@@ -8,6 +8,10 @@
 
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
+***Important: Connecting To Redis***
+
+All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have on Redis server for your code to use for background processing, and another you connect to to talk to the message bus.
+
 ----
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
@@ -76,7 +80,7 @@ class Kallback
 end
 
 # Rig Redis - you need different connections for pub and sub
-$redis = Redis.new
+$busredis = Redis.new
 $pubredis = Redis.new
 $subredis = Redis.new
 
@@ -105,7 +109,7 @@ In `.../config/initializers/redis_bus.rb` you can set the configuration and the 
 # .../config/initializers/redis_bus.rb
 
 # Instantiate publish and subscribe Redis connections
-# This assumes that "$redis = Redis.new" is set in redis.rb
+# This assumes that "$busredis = Redis.new" is set in redis.rb
 $pubredis = Redis.new
 $subredis = Redis.new
 
@@ -162,6 +166,7 @@ To run Redbus as a standalone process is basically just taking some of the initi
 ```ruby
 # .../config/initializers/redis_bus.rb
 
+$busredis = Redis.new
 $pubredis = Redis.new
 $subredis = Redis.new
 
@@ -198,7 +203,7 @@ begin
   )
 rescue Interrupt => e
   print_exception(e, true)
-  $redis.close
+  $busredis.close
   $pubredis.close
   $subredis.close
 end

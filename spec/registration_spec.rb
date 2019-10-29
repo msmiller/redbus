@@ -4,8 +4,8 @@ require 'awesome_print'
 RSpec.describe Redbus::Registration do
 
   before :each do
-    $redis.flushall
-    $redis.flushdb
+    $busredis.flushall
+    $busredis.flushdb
   end
 
   context "registration functions" do

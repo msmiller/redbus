@@ -37,8 +37,8 @@ RSpec.describe Redbus::Cachethru do
     it "can get an object across an rpc request" do
 
       # set up
-      $redis.flushall
-      $redis.flushdb
+      $busredis.flushall
+      $busredis.flushdb
       Kallback.reset_globals
       Redbus::Registration.register_endpoint("@test")
       Redbus::Lpubsub.clear_channel("@test")
@@ -74,8 +74,8 @@ RSpec.describe Redbus::Cachethru do
     it "can get a json hashed object across an rpc request" do
 
       # set up
-      $redis.flushall
-      $redis.flushdb
+      $busredis.flushall
+      $busredis.flushdb
       Kallback.reset_globals
       Redbus::Registration.register_endpoint("@test")
       Redbus::Lpubsub.clear_channel("@test")
@@ -110,8 +110,8 @@ RSpec.describe Redbus::Cachethru do
     end
     it "can get remove a cached object" do
       # set up
-      $redis.flushall
-      $redis.flushdb
+      $busredis.flushall
+      $busredis.flushdb
       Kallback.reset_globals
       Redbus::Registration.register_endpoint("@test")
       Redbus::Lpubsub.clear_channel("@test")

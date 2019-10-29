@@ -4,8 +4,8 @@ require 'awesome_print'
 RSpec.describe Redbus::Lpubsub do
 
   before :each do
-    $redis.flushall
-    $redis.flushdb
+    $busredis.flushall
+    $busredis.flushdb
     Kallback.reset_globals
     # Redbus.timeout = 1
     Redbus::Registration.register_endpoint("@test")

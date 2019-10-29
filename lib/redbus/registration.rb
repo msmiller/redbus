@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-24 10:55:37
+# @Last Modified time: 2019-10-29 16:01:39
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -15,20 +15,20 @@ module Redbus
     # The default here is to register the current instance's config'd endpoint - which will be
     # the case most of the time.
     def self.register_endpoint(name = "@#{Redbus.endpoint}")
-      $redis.set("endpoints:#{name}", Time.now)
+      $busredis.set("endpoints:#{name}", Time.now)
     end
 
     # TODO: self.unregister_endpoint(name = "@#{Redbus.endpoint}")
 
     # This returns a list of the endpoint keys
     def self.registered_endpoints
-      $redis.keys("endpoints:*").map{ |ep| key_to_endpoint(ep) }
+      $busredis.keys("endpoints:*").map{ |ep| key_to_endpoint(ep) }
     end
 
     # This is a hash which includes the timestamp the endpoint was registered at
     def self.endpoint_registrations
       result = {}
-      $redis.keys("endpoints:*").map{ |ep| result[key_to_endpoint(ep)] = $redis.get(ep) }
+      $busredis.keys("endpoints:*").map{ |ep| result[key_to_endpoint(ep)] = $busredis.get(ep) }
       return result
     end
 
@@ -37,23 +37,23 @@ module Redbus
     # For instance "I want to know when something happens to Users"
 
     def self.register_interest(name)
-      $redis.set("interests:#{name}:#{Redbus.endpoint}", Time.now)
+      $busredis.set("interests:#{name}:#{Redbus.endpoint}", Time.now)
     end
 
     # This returns a list of the interests keys
     def self.registered_interests
-      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| key_to_interest(ip) }
+      $busredis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| key_to_interest(ip) }
     end
 
     # This returns a list of the interests keys
     def self.registered_channel_interests(channel)
-      $redis.keys("interests:#{channel}:*").map{ |ip| key_to_interest(ip) }
+      $busredis.keys("interests:#{channel}:*").map{ |ip| key_to_interest(ip) }
     end
 
     # This is a hash which includes the timestamp the interests was registered at
     def self.interest_registrations
       result = {}
-      $redis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| result[key_to_interest(ip)] = $redis.get(ip) }
+      $busredis.keys("interests:*:#{Redbus.endpoint}").map{ |ip| result[key_to_interest(ip)] = $busredis.get(ip) }
       return result
     end
 
@@ -81,14 +81,14 @@ module Redbus
     # Utils
 
     def self.clear_registrations
-      $redis.keys("endpoints:*").each{ |k| $redis.del(k) }
-      $redis.keys("interests:*").each{ |k| $redis.del(k) }
+      $busredis.keys("endpoints:*").each{ |k| $busredis.del(k) }
+      $busredis.keys("interests:*").each{ |k| $busredis.del(k) }
     end
 
     # admin function for namespace changes
     def self.remove_endpoint_regs(endpoint_name)
-      $redis.keys("endpoints:#{endpoint_name}").each{ |k| $redis.del(k) }
-      $redis.keys("interests:*:#{endpoint_name}").each{ |k| $redis.del(k) }
+      $busredis.keys("endpoints:#{endpoint_name}").each{ |k| $busredis.del(k) }
+      $busredis.keys("interests:*:#{endpoint_name}").each{ |k| $busredis.del(k) }
     end
 
     def self.key_to_endpoint(k)

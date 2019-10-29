@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-12 13:49:17
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-29 12:35:31
+# @Last Modified time: 2019-10-29 16:01:39
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -29,12 +29,12 @@ module Redbus
       base_redis_key = _base_redis_key(item)
       redis_key = _redis_key(item)
       if serialized.is_a?(String) # which also means !nil?
-        @json_hash = $redis.set(redis_key, serialized)
+        @json_hash = $busredis.set(redis_key, serialized)
       else
-        @json_hash = $redis.set(redis_key, item.to_json)
+        @json_hash = $busredis.set(redis_key, item.to_json)
       end
       if expire_at
-        $redis.expireat "#{Redbus::CACHETHRU_KEY_ROOT}:#{redis_key}", expire_at
+        $busredis.expireat "#{Redbus::CACHETHRU_KEY_ROOT}:#{redis_key}", expire_at
       end
       # Publish back an acknowledge that it's ready so the requester can get the data
       if rpc_token
@@ -52,13 +52,13 @@ module Redbus
       base_redis_key = _base_redis_key( {class: item_class, id: item_id} )
       redis_key = _redis_key( {class: item_class, id: item_id} )
 
-      @json_hash = $redis.get(redis_key)
+      @json_hash = $busredis.get(redis_key)
       # If the object doesn't exist, then request it over RPC
       if @json_hash.nil? || @json_hash.value.nil? || @json_hash.value.empty?
         data = { message: 'deposit', item_class: item_class, item_id: item_id, expire_at: expire_at }
         result = Redbus::Rpc.publish_rpc(channel, data)
         # Reload the hash from Redis
-        @json_hash = $redis.get(redis_key)
+        @json_hash = $busredis.get(redis_key)
       end
 
       # p "retrieve: #{JSON.parse(@json_hash)}"
@@ -69,7 +69,7 @@ module Redbus
     def self.remove(item_class, item_id)
       base_redis_key = _base_redis_key( {class: item_class, id: item_id} )
       redis_key = _redis_key( {class: item_class, id: item_id} )
-      return $redis.del(redis_key)
+      return $busredis.del(redis_key)
     end
 
   end

@@ -19,7 +19,7 @@ end
 
 # These will be in an initializer
 
-$redis = Redis.new
+$busredis = Redis.new
 $pubredis = Redis.new
 $subredis = Redis.new
 
