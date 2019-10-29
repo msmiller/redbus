@@ -10,7 +10,7 @@ Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and
 
 ***Important: Connecting To Redis***
 
-All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have on Redis server for your code to use for background processing, and another you connect to to talk to the message bus.
+All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have one Redis server for your code to use for background processing, and another you connect to for the message bus.
 
 ----
 
@@ -109,7 +109,7 @@ In `.../config/initializers/redis_bus.rb` you can set the configuration and the 
 # .../config/initializers/redis_bus.rb
 
 # Instantiate publish and subscribe Redis connections
-# This assumes that "$busredis = Redis.new" is set in redis.rb
+$busredis = Redis.new
 $pubredis = Redis.new
 $subredis = Redis.new
 
