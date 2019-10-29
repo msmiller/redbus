@@ -12,16 +12,16 @@ Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 
-- [Redbus](#redbus)
-    - [Features](#features)
-    - [Installation](#installation)
-    - [Channel Namespaces](#channel-namespaces)
-    - [Usage](#usage)
-    - [Configuration (Running in a thread within a Rails -pp)](#configuration--running-in-a-thread-within-a-rails-app-)
-    - [Running as a standalone daemon](#running-as-a-standalone-daemon)
-    - [RPC](#rpc)
-    - [Cache-Thru](#cache-thru)
-    - [Stats](#stats)
+* [Features](#features)
+* [Installation](#installation)
+* [Channel Namespaces](#channel-namespaces)
+* [Usage](#usage)
+* [Running in a thread within a Rails App](#running-in-a-thread-within-a-rails-app)
+* [Running as a standalone daemon](#running-as-a-standalone-daemon)
+* [RPC](#rpc)
+* [Cache-Thru](#cache-thru)
+* [Stats](#stats)
+
 
 ----
 
@@ -69,11 +69,11 @@ $subredis = Redis.new
 
 Redbus uses a Twitter-esque namespace pattern to make it easier to visualize message flow:
 
-`@channel` - this is an "endpoint", used for sending a message to a specific microservice. For instance, @email would be what an email service subscribes to and what a client would send to in order to send an email. Sending to a `@channel` is a 1-to-1 message delivery - only one app/service will respond to the message and only one worker on that app/service will process the message.
+**`@channel`** - this is an "endpoint", used for sending a message to a specific microservice. For instance, @email would be what an email service subscribes to and what a client would send to in order to send an email. Sending to a `@channel` is a 1-to-1 message delivery - only one app/service will respond to the message and only one worker on that app/service will process the message.
 
-`#channel` - this is for "interests". For instance, an email service would want to know about Agents and Offices to be able to find mail templates, so it would subscribe to [#agents, #offices] to be notified of any updates. Sending to a `#channel` delivers the message to every app/service that is subscribed. Only one worker on a subscribed app/service will process the message.
+**`#channel`** - this is for "interests". For instance, an email service would want to know about Users and Customers to be able to find mail templates, so it would subscribe to [#users, #customers] to be notified of any updates. Sending to a `#channel` delivers the message to every app/service that is subscribed. Only one worker on a subscribed app/service will process the message.
 
-`rpc.XXXXXXXXXXXXXXXX` - these are ad-hoc channels used for waiting for and sending RPC-like responses to requests. The channel name is created by MagicBus and destroyed once the round-trip is complete.
+**`rpc.XXXXXXXXXXXXXXXX`** - these are ad-hoc channels used for waiting for and sending RPC-like responses to requests. The channel name is created by Redbus and destroyed once the round-trip is complete.
 
 ## Usage
 
@@ -107,9 +107,7 @@ Redbus::Registration.register_interest('#views')
 Redbus::Lpubsub.subscribe_all( true, "Kallback::dump" )
 ```
 
-More detailed configuration and integration examples are included later in this README.
-
-## Configuration (Running in a thread within a Rails App)
+## Running in a thread within a Rails App
 
 **NOTE:** _The initializer needs to be called `redis_bus.rb` so that it loads after `redis.rb`._
 
