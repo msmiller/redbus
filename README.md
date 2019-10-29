@@ -63,7 +63,7 @@ Redbus::Registration.register_interest('#users')
 Redbus::Registration.register_interest('#views')
 
 # Bulk subscribe to everything registered for
-Redbus::Lpubsub.subscribe_all( "Kallback::dump" )
+Redbus::Lpubsub.subscribe_all( true, "Kallback::dump" )
 ```
 
 ***Stats***
@@ -88,7 +88,11 @@ In `.../config/initializers/redis_bus.rb` you can set the configuration and the 
 
 ```ruby
 # .../config/initializers/redis_bus.rb
-#
+
+$redis = Redis.new
+$pubredis = Redis.new
+$subredis = Redis.new
+
 # Required
 Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
                                     # Note: the '@' prefix isn't required
@@ -103,7 +107,9 @@ Redbus::Registration.register_interest("#users")
 
 # Now set up the listener, which runs in a backround thread
 Redbus.subscribe_async( 
-    Redbus::Registration.subscribe_list, "RedbusHandler::perform"
+    Redbus::Registration.subscribe_list,
+    true, # threaded mode is set
+    "RedbusHandler::perform"
 )
 ```
 
@@ -132,6 +138,54 @@ end
 ```
 
 _Note that you can have multiple endpoints for a microservice. For instance you could have one for `@email` and one for `@sms`. But at the end of the day there isn't much gain. All you're doing is going from one callback with a switch to two callbacks. So for simplicity sake, just assume one primary endpoint name per app._
+
+## Running as a standalone daemon 
+
+To run Redbus as a standalone process is basically just taking some of the initializer and moving it to a standalone script, with a few small changes. This example assumes the same `RedbusHandler` is available. 
+
+```ruby
+# .../config/initializers/redis_bus.rb
+
+$redis = Redis.new
+$pubredis = Redis.new
+$subredis = Redis.new
+
+Redbus.endpoint = "my_endpoint"
+Redbus.poll_delay = 0
+Redbus.timeout = 5
+```
+
+```ruby
+# .../run_redbus.rb
+#
+# USAGE: bundle exec ruby run_redbus.rb
+
+require 'redis'
+require 'redbus'
+
+# Register defined endpoint and interests
+# 
+# When running as a daemon, only the daemon cares about these
+# registrations. So they're no longer needed in the main
+# initializer.
+Redbus::Registration.register_endpoint
+Redbus::Registration.register_interest("#posts")
+Redbus::Registration.register_interest("#users")
+
+# Now run the listener with threaded mode OFF
+begin
+  Redbus.subscribe_async( 
+      Redbus::Registration.subscribe_list,
+      false, # threaded mode is OFF
+      "RedbusHandler::perform"
+  )
+rescue Interrupt => e
+  print_exception(e, true)
+  $redis.close
+  $pubredis.close
+  $subredis.close
+end
+```
 
 ## Channel Namespaces
 

@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-28 18:39:22
+# @Last Modified time: 2019-10-28 18:41:42
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -111,8 +111,8 @@ p "----> CALLING #{klass}::#{methud} for #{chan}"
     end
 
     # Shortcut to subscribe to everything registered
-    def self.subscribe_all(callback=nil)
-      Redbus.subscribe_async(Redbus::Registration.subscribe_list, callback)
+    def self.subscribe_all(threaded=true, callback=nil)
+      Redbus.subscribe_async(Redbus::Registration.subscribe_list, threaded, callback)
     end
 
   end
