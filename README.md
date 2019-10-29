@@ -8,10 +8,6 @@
 
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
-***Important: Connecting To Redis***
-
-All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have one Redis server for your code to use for background processing, and another you connect to for the message bus.
-
 ----
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
@@ -54,6 +50,20 @@ And then execute:
 Or install it yourself as:
 
     $ gem install redbus
+
+***Important: Connecting To Redis***
+
+All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have one Redis server for your code to use for background processing, and another you connect to for the message bus. The way Redis' pub/sub mechanism works, you need different connections for publish and subscribe. The pattern adopted for Redbus is to maintain three permanent connections: 
+
+- One for publushing
+- One for subscribing
+- One for management, registration and statistics gathering
+
+```ruby
+$busredis = Redis.new
+$pubredis = Redis.new
+$subredis = Redis.new
+```
 
 ## Channel Namespaces
 
