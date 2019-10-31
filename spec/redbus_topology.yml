@@ -1,0 +1,9 @@
+test1:
+  interests:
+    - interest1
+    - interest2
+test2:
+  interests:
+    - interest3
+test3:
+  interests:

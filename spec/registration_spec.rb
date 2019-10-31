@@ -101,5 +101,32 @@ RSpec.describe Redbus::Registration do
 
   end # registration functions
 
+  context "topology loader functions" do
+
+    it "can set and load the yaml topology" do
+      @yaml_file = 'redbus_topology.yml'
+      @endpoint = 'test1'
+
+      Redbus::Registration.clear_registrations
+      Redbus.endpoint = @endpoint
+      expect( Redbus.endpoint ).to eq(  @endpoint )
+
+      Redbus::Registration.load_topology(@yaml_file)
+      expect( Redbus.topology_cfg ).to eq( @yaml_file )
+      ap Redbus.topology
+
+      expect( Redbus.topology[@endpoint]['interests'].length ).to eq(2)
+      expect( Redbus.topology['test2']['interests'].length ).to eq(1)
+      expect( Redbus.topology['test3']['interests'] ).to be nil
+    end
+
+    # This depends on registered_endpoints and registered_interests
+    it "can generate subscribe_list from topology" do
+    end
+
+    it "can generate fanout_list from topology" do
+    end
+
+  end # topology loader functions
 end
 

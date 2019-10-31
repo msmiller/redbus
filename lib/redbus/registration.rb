@@ -2,12 +2,28 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-29 16:01:39
+# @Last Modified time: 2019-10-31 10:43:43
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
+require 'yaml'
+
 module Redbus
   class Registration
+
+    # ########
+    # The topology config loads the endpoints and interests for a multi-app/service
+    # system from a YAML file. This will perform a bit better
+
+    def self.load_topology(topology_yaml)
+      Redbus.topology_cfg = topology_yaml
+      if Rails.env == 'test'
+        topopath = File.expand_path("../../../spec/#{topology_yaml}", __FILE__)
+      else
+        topopath = Rails.root.join('config', topology_yaml)
+      end
+      Redbus.topology = YAML.load( File.read(topopath)  )
+    end
 
     # ########
     # Endpoints are for direct message requests. Such as "tell the mail-sender to send an email"
@@ -64,6 +80,8 @@ module Redbus
     # and you're registering interest in "bar", the channel will be "#foo_bar".
 
     def self.subscribe_list
+      # THIS FIRST LINE IS WHAT IT SHOULD BE IN REAL
+      endpoints = [ key_to_endpoint("@#{Redbus.endpoint}")] #registered_endpoints
       endpoints = registered_endpoints
       # interests = registered_interests.map { |k| "#{k}_#{Redbus.endpoint}" }
       interests = registered_interests #.map { |k| "#{k}_#{Redbus.endpoint}" }

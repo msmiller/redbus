@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-29 11:51:24
+# @Last Modified time: 2019-10-30 13:05:02
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -20,9 +20,12 @@ require 'redbus/cachethru'
 
 module Redbus
 
-  @@endpoint = "redbus#{rand(1000...9999)}"
-  @@poll_delay = 1    # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
-  @@timeout = 5       # This is the timeout for subscribe_once (fixnum:seconds)
+  @@endpoint =      "redbus#{rand(1000...9999)}"
+  @@poll_delay =    1     # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
+  @@timeout =       5     # This is the timeout for subscribe_once (fixnum:seconds)
+  @@topology_cfg =  nil   # If you want to load the topology from a common YAML file
+
+  @@topology = {}
 
   # Use this to switch between LIST-based and traditional PUBSUB-based
   # Note: for now the PUBSUB code is unsupported
@@ -55,6 +58,22 @@ module Redbus
 
   def self.timeout=(i)
     @@timeout = i
+  end
+
+  def self.topology_cfg
+    @@topology_cfg
+  end
+
+  def self.topology_cfg=(i)
+    @@topology_cfg = i
+  end
+
+  def self.topology
+    @@topology
+  end
+
+  def self.topology=(i)
+    @@topology = i
   end
 
   #### END CONFIG VARIABLES
