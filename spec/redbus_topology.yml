@@ -4,6 +4,7 @@ test1:
     - interest2
 test2:
   interests:
+    - interest2
     - interest3
 test3:
   interests:

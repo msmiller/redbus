@@ -17,11 +17,15 @@ RSpec.configure do |config|
   end
 end
 
-# These will be in an initializer
+def setup_test_bus
+  @yaml_file = 'redbus_topology.yml'
+  @endpoint = 'test1'
+  @current_redbus = RedisBus.new(@endpoint, @yaml_file)
+  @current_redbus.busredis.flushall
+  @current_redbus.busredis.flushdb
+end
 
-$busredis = Redis.new
-$pubredis = Redis.new
-$subredis = Redis.new
+# These will be in an initializer
 
 class Kallback
 
