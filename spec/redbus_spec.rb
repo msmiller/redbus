@@ -19,10 +19,18 @@ RSpec.describe Redbus do
       expect(@current_redbus.endpoint).to eq('test1')
       expect(@current_redbus.timeout).to eq(5)
       expect( @current_redbus.topology_cfg ).to eq( nil )
+    end
 
-      @other_redbus = RedisBus.new('test1', nil, nil, 2, 12)
-      expect(@other_redbus.poll_delay).to eq(2)      
-      expect(@other_redbus.timeout).to eq(12)      
+    it "can change settings" do
+      expect(@current_redbus.endpoint).to eq('test1')
+      expect(@current_redbus.timeout).to eq(5)
+      expect( @current_redbus.topology_cfg ).to eq( nil )
+
+      @other_redbus = RedisBus.new('test1', nil, nil)
+      @other_redbus.poll_delay = 123
+      @other_redbus.timeout = 456
+      expect(@other_redbus.poll_delay).to eq(123)
+      expect(@other_redbus.timeout).to eq(456)
     end
 
   end # gem config

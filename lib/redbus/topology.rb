@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-31 17:45:54
+# @Last Modified time: 2019-11-01 12:00:41
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -13,10 +13,6 @@ class RedisBus
   # ########
   # The topology config loads the endpoints and interests for a multi-app/service
   # system from a YAML file. This will perform a bit better
-
-  def bar
-    p "BAR!"
-  end
 
   def load_topology
     if Rails.env == 'test'

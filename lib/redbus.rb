@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-10-31 16:29:17
+# @Last Modified time: 2019-11-01 11:59:24
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -23,15 +23,17 @@ module Redbus
   class Error < StandardError; end
 
   CACHETHRU_KEY_ROOT = "redbuscache"
+  DEFAULT_POLL_DELAY = 1
+  DEFAULT_TIMEOUT = 5
 
 end
 
 class RedisBus
 
   @endpoint =      "redbus#{rand(1000...9999)}"
-  @poll_delay =    1     # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
-  @timeout =       5     # This is the timeout for subscribe_once (fixnum:seconds)
-  @topology_cfg =  nil   # If you want to load the topology from a common YAML file
+  @poll_delay =    Redbus::DEFAULT_POLL_DELAY     # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
+  @timeout =       Redbus::DEFAULT_TIMEOUT        # This is the timeout for subscribe_once (fixnum:seconds)
+  @topology_cfg =  nil                            # If you want to load the topology from a common YAML file
 
   @topology = {}
 
@@ -41,11 +43,11 @@ class RedisBus
 
   attr_accessor :endpoint, :poll_delay, :timeout, :topology_cfg, :topology, :busredis, :pubredis, :subredis
 
-  def initialize(endpoint, topology_cfg, redis_url=nil, poll_delay=1, timeout=5)
+  def initialize(endpoint, topology_cfg, redis_url=nil)
     @endpoint = endpoint
     @topology_cfg = topology_cfg
-    @poll_delay = poll_delay
-    @timeout = timeout
+    @poll_delay = Redbus::DEFAULT_POLL_DELAY
+    @timeout = Redbus::DEFAULT_TIMEOUT
     @topology = {}
     if redis_url.nil?
       @busredis = Redis.new
@@ -67,38 +69,4 @@ class RedisBus
     '#' == c[0]
   end
 
-  #### PUBLIC FUNCTIONS
-
-  def self.publish(channels, data)
-    Redbus::Lpubsub.publish(channels, data)
-  end
-
-  def self.subscribe_once(channel, callback=nil)
-    Redbus::Lpubsub.subscribe_once(channel, callback)
-  end
-
-  def self.subscribe_async(channels, callback=nil)
-    Redbus::Lpubsub.subscribe_async(channels, callback)
-  end
-
-  def self.subscribe_all(callback=nil)
-    Redbus::Lpubsub.subscribe_all(callback)
-  end
-
-  ###
-
-  def self.retrieve(item_class, item_id, channel, expire_at=nil)
-    Redbus::Cachethru.retrieve(item_class, item_id, channel, expire_at=nil)
-  end
-
-  def self.deposit(item, rpc_token=nil, expire_at=nil)
-    Redbus::Cachethru.deposit(item, rpc_token, expire_at=nil)
-  end
-
-  def self.cremove(item_class, item_id)
-    Redbus::Cachethru.remove(item_class, item_id)
-  end
-
-  #### END PUBLIC FUNCTIONS
-
-  end
+end

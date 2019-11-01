@@ -4,7 +4,7 @@ require 'redbus'
 
 RSpec.describe RedisBus do
 
-  DEBUG_ON = true
+  DEBUG_ON = false
 
   before :each do
     setup_test_bus
