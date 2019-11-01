@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-01 11:59:24
+# @Last Modified time: 2019-11-01 13:28:19
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -30,6 +30,7 @@ end
 
 class RedisBus
 
+  @redis_url =     ""
   @endpoint =      "redbus#{rand(1000...9999)}"
   @poll_delay =    Redbus::DEFAULT_POLL_DELAY     # This throttles how often to ping Redbus when it's empty (fixnum:seconds)
   @timeout =       Redbus::DEFAULT_TIMEOUT        # This is the timeout for subscribe_once (fixnum:seconds)
@@ -41,7 +42,7 @@ class RedisBus
   @pubredis = nil
   @subredis = nil
 
-  attr_accessor :endpoint, :poll_delay, :timeout, :topology_cfg, :topology, :busredis, :pubredis, :subredis
+  attr_accessor :endpoint, :poll_delay, :timeout, :topology_cfg, :topology, :busredis, :pubredis, :subredis, :redis_url
 
   def initialize(endpoint, topology_cfg, redis_url=nil)
     @endpoint = endpoint
@@ -54,6 +55,7 @@ class RedisBus
       @pubredis = Redis.new
       @subredis = Redis.new
     else
+      @redis_url = redis_url
       @busredis = Redis.new(url: redis_url)
       @pubredis = Redis.new(url: redis_url)
       @subredis = Redis.new(url: redis_url)

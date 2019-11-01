@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-01 13:16:37
+# @Last Modified time: 2019-11-01 13:32:57
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -10,7 +10,7 @@
 
 class RedisBus
 
-  DEBUG_ON = false
+  LPUBSUB_DEBUG_ON = false
 
   def clear_channel(channel)
     self.subredis.ltrim(channel, 1, -1)
@@ -18,13 +18,13 @@ class RedisBus
 
   # Fire-and-forget publish
   def publish(channels, data)
-    p "PUBLISH #{channels} / #{data}" if DEBUG_ON
+    p "PUBLISH #{channels} / #{data}" if LPUBSUB_DEBUG_ON
     channel_list = []
     channels.gsub(/\s+/, "").split(',').each do |c|
       # If it's an interest, publish to fan-out list
       if c.include? '#'
         channel_list += self.fanout_list(c)
-        p "FANOUT LIST: #{channel_list}" if DEBUG_ON
+        p "FANOUT LIST: #{channel_list}" if LPUBSUB_DEBUG_ON
       else
         channel_list += [ c ]
       end
@@ -67,28 +67,28 @@ class RedisBus
 
     if threaded
       Thread.new do
-        p "THREAD START" if DEBUG_ON
+        p "THREAD START" if LPUBSUB_DEBUG_ON
         do_subscribe_async(channels, true, callback)
-        p "THREAD DONE" if DEBUG_ON
+        p "THREAD DONE" if LPUBSUB_DEBUG_ON
       end
     else
-      p "INLINE START" if DEBUG_ON
+      p "INLINE START" if LPUBSUB_DEBUG_ON
       do_subscribe_async(channels, false, callback)
-      p "INLINE DONE" if DEBUG_ON
+      p "INLINE DONE" if LPUBSUB_DEBUG_ON
     end
   end
 
   # This is the main subscribe loop
   def do_subscribe_async(channels, threaded=true, callback=nil)
-    p "DO_SUBSCRIBE_ASYNC(#{channels}, #{threaded}, #{callback})" if DEBUG_ON
+    p "DO_SUBSCRIBE_ASYNC(#{channels}, #{threaded}, #{callback})" if LPUBSUB_DEBUG_ON
     klass,methud = RedisBus::parse_callback(callback)
-    p "CALLBACK: #{klass},#{methud}" if DEBUG_ON
+    p "CALLBACK: #{klass},#{methud}" if LPUBSUB_DEBUG_ON
     while(true)
       # chan,msg = self.subredis.blpop(channels, :timeout => 5)
       begin
         chan,msg = self.subredis.blpop(channels, :timeout => self.poll_delay)
-        p "CHAN: #{chan}" if DEBUG_ON
-        p "MESG: #{msg}" if DEBUG_ON
+        p "CHAN: #{chan}" if LPUBSUB_DEBUG_ON
+        p "MESG: #{msg}" if LPUBSUB_DEBUG_ON
         if msg.nil?
           # TIMEOUT - msg will be nil
         else
@@ -96,7 +96,7 @@ class RedisBus
           if callback.nil?
             RedisBus::dump_message(channel, msg)
           else
-            p "----> CALLING #{klass}::#{methud} for #{chan}" if DEBUG_ON
+            p "----> CALLING #{klass}::#{methud} for #{chan}" if LPUBSUB_DEBUG_ON
             klass.send(methud, chan, JSON.parse(msg))
           end
         end
