@@ -1,40 +1,44 @@
 require 'redis'
 require 'awesome_print'
 
-RSpec.describe Redbus::Lpubsub do
+RSpec.describe RedisBus do
+
+  DEBUG_ON = false
 
   before :each do
-    $busredis.flushall
-    $busredis.flushdb
     Kallback.reset_globals
-    # Redbus.timeout = 1
-    Redbus::Lpubsub.clear_channel("@test")
-    Redbus::Lpubsub.clear_channel("@test1")
-    Redbus::Lpubsub.clear_channel("@test2")
-    Redbus::Lpubsub.clear_channel("@EXIT")
+
+    setup_test_bus
+    @current_redbus.busredis.flushall
+    @current_redbus.busredis.flushdb
+    @yaml_data = YAML.load( File.read( File.expand_path("../#{@yaml_file}", __FILE__) ) )
+    @current_redbus.clear_channel("@test")
+    @current_redbus.clear_channel("@test1")
+    @current_redbus.clear_channel("@test2")
+    @current_redbus.clear_channel("@EXIT")
   end
 
   context "lpubsub" do
 
     it "can publish to a channel" do
-      expect($pubredis.llen("@test")).to eq(0)
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      expect($pubredis.llen("@test")).to eq(1)
+      expect(@current_redbus.pubredis.llen("@test")).to eq(0)
+      @current_redbus.publish( "@test", { "foo" => "bar" } )
+      expect(@current_redbus.pubredis.llen("@test")).to eq(1)
     end
 
     it "can publish to a channel-list" do
-      expect($pubredis.llen("@test1")).to eq(0)
-      expect($pubredis.llen("@test2")).to eq(0)
-      Redbus::Lpubsub.publish( "@test1,@test2", { "foo" => "bar" } )
-      Redbus::Lpubsub.publish( "@test1,@test2", { "ack" => "oop" } )
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      expect($pubredis.llen("@test1")).to eq(2)
-      expect($pubredis.llen("@test2")).to eq(2)
+      expect(@current_redbus.pubredis.llen("@test1")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test2")).to eq(0)
+      @current_redbus.publish( "@test1,@test2", { "foo" => "bar" } )
+      @current_redbus.publish( "@test1,@test2", { "ack" => "oop" } )
+      @current_redbus.publish( "@test", { "foo" => "bar" } )
+      expect(@current_redbus.pubredis.llen("@test1")).to eq(2)
+      expect(@current_redbus.pubredis.llen("@test2")).to eq(2)
     end
 
     it "can subscribe_once" do
-      Redbus::Lpubsub.publish( "@test", { "foo" => "bar" } )
-      result = Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
+      @current_redbus.publish( "@test", { "foo" => "bar" } )
+      result = @current_redbus.subscribe_once( "@test", "Kallback::stash" )
       expect(result).not_to be nil
       json_result = JSON.parse(result)
       expect(json_result['foo']).to eq('bar')
@@ -42,39 +46,34 @@ RSpec.describe Redbus::Lpubsub do
 
     # Mockredis will return nil right away if list empty
     it "can handle subscribe timeout" do
-      expect($pubredis.llen("@test")).to eq(0)
-      result = Redbus::Lpubsub.subscribe_once( "@test", "Kallback::stash" )
+      expect(@current_redbus.pubredis.llen("@test")).to eq(0)
+      result = @current_redbus.subscribe_once( "@test", "Kallback::stash" )
       expect(result).to be nil
     end
 
     it "can subscribe_async to endpoints" do
-      # Register the endpoints
-      Redbus::Registration.register_endpoint("@test1")
-      Redbus::Registration.register_endpoint("@test2")
-      Redbus::Registration.register_endpoint("@EXIT")
-
       # Publish some data, including the exit message
-      Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
-      Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
+      @current_redbus.publish( "@test1",  { "foo" => "bar" } )
+      @current_redbus.publish( "@test2", { "ack" => "oop" } )
 
-      expect($pubredis.llen("@EXIT")).to eq(0)
-      expect($pubredis.llen("@test1")).to eq(1)
-      expect($pubredis.llen("@test2")).to eq(1)
+      expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test1")).to eq(1)
+      expect(@current_redbus.pubredis.llen("@test2")).to eq(1)
       # This needs a delay so that the @EXIT is handled right
       Thread.new do
         sleep(0.1)
-        Redbus::Lpubsub.publish( "@EXIT", {  } )
+        @current_redbus.publish( "@EXIT", {  } )
       end
       # GO!
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, true, "Kallback::stashstack" )
+      @current_redbus.subscribe_async( (@current_redbus.subscribe_list + [ '@EXIT', '@test2']), true, "Kallback::stashstack" )
       # DONE! (after @EXIT processed)
       sleep(0.2)
-      expect($pubredis.llen("@test1")).to eq(0)
-      expect($pubredis.llen("@test2")).to eq(0)
-      expect($pubredis.llen("@EXIT")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test1")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test2")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      ap Kallback.stash_stack
+      ap Kallback.stash_stack if DEBUG_ON
       expect(Kallback.stash_stack.length).to eq(3)
       test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
       expect(test1_stash).to_not be(nil)
@@ -82,69 +81,65 @@ RSpec.describe Redbus::Lpubsub do
     end
 
     it "can subscribe_async to interests" do
-      # Register the endpoints
-      Redbus::Registration.register_endpoint("@EXIT")
-      Redbus::Registration.register_interest("#users")
-      Redbus::Registration.register_interest("#accounts")
+
+      p "----" if DEBUG_ON
+      p @current_redbus.fanout_list('interest1') if DEBUG_ON
+      p @current_redbus.fanout_list('interest2') if DEBUG_ON
+      p "----" if DEBUG_ON
 
       # Publish some data, including the exit message
-      Redbus::Lpubsub.publish( "#users",  { "foo" => "bar" } )
-      Redbus::Lpubsub.publish( "#accounts", { "ack" => "oop" } )
-      expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(1)
-      expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(1)
-
-p Redbus::Registration.fanout_list('#users')
-p Redbus::Registration.fanout_list('#accounts')
+      @current_redbus.publish( "#interest1",  { "foo" => "bar" } )
+      @current_redbus.publish( "#interest2", { "ack" => "oop" } )
+      expect(@current_redbus.pubredis.llen("#interest1_#{@current_redbus.endpoint}")).to eq(1)
+      expect(@current_redbus.pubredis.llen("#interest2_#{@current_redbus.endpoint}")).to eq(1)
 
 
       # We need to put a delay on the @EXIT command or it'll rip through so fast it errors out
       Thread.new do
         sleep(0.1)
-        Redbus::Lpubsub.publish( "@EXIT", {  } )
+        @current_redbus.publish( "@EXIT", {  } )
       end
 
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, true, "Kallback::stashstack" )
+      @current_redbus.subscribe_async( (@current_redbus.subscribe_list + [ '@EXIT', '@test2']), true, "Kallback::stashstack" )
       # DONE! - wait a tick to let everything catch up
       sleep(0.2)
 
-      # p $pubredis.llen("#users_#{Redbus.endpoint}")
-      # p $pubredis.llen("#accounts_#{Redbus.endpoint}")
-      # p $pubredis.llen("@EXIT")
+      # p @current_redbus.pubredis.llen("#interest1_#{@current_redbus.endpoint}")
+      # p @current_redbus.pubredis.llen("#interest2_#{@current_redbus.endpoint}")
+      # p @current_redbus.pubredis.llen("@EXIT")
 
-      expect($pubredis.llen("#users_#{Redbus.endpoint}")).to eq(0)
-      expect($pubredis.llen("#accounts_#{Redbus.endpoint}")).to eq(0)
-      expect($pubredis.llen("@EXIT")).to eq(0)
+      expect(@current_redbus.pubredis.llen("#interest1_#{@current_redbus.endpoint}")).to eq(0)
+      expect(@current_redbus.pubredis.llen("#interest2_#{@current_redbus.endpoint}")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      users_stash = Kallback.stash_stack.select{ |x| x[0] == "#users_#{Redbus.endpoint}"}.first
+      p "========" if DEBUG_ON
+      ap Kallback.stash_stack if DEBUG_ON
+      users_stash = Kallback.stash_stack.select{ |x| x[0] == "#interest1_#{@current_redbus.endpoint}"}.first
       expect(users_stash).to_not be(nil)
       expect(users_stash[1]["foo"]).to eq("bar")
     end
 
     it "can subscribe_async in inline mode" do
-      # Register the endpoints
-      Redbus::Registration.register_endpoint("@test1")
-      Redbus::Registration.register_endpoint("@test2")
-      Redbus::Registration.register_endpoint("@EXIT")
 
       # Publish some data, including the exit message
-      Redbus::Lpubsub.publish( "@test1",  { "foo" => "bar" } )
-      Redbus::Lpubsub.publish( "@test2", { "ack" => "oop" } )
+      @current_redbus.publish( "@test1",  { "foo" => "bar" } )
+      @current_redbus.publish( "@test2", { "ack" => "oop" } )
       # This needs a delay so that the @EXIT is handled right
       Thread.new do
         sleep(1)
-        Redbus::Lpubsub.publish( "@EXIT", {  } )
+        @current_redbus.publish( "@EXIT", {  } )
       end
 
       # GO!
-      Redbus::Lpubsub.subscribe_async( Redbus::Registration.subscribe_list, false, "Kallback::stashstack" )
+      @current_redbus.subscribe_async( (@current_redbus.subscribe_list + [ '@EXIT', '@test2']), false, "Kallback::stashstack" )
       # DONE! (after @EXIT processed)
-      expect($pubredis.llen("@test1")).to eq(0)
-      expect($pubredis.llen("@test2")).to eq(0)
-      expect($pubredis.llen("@EXIT")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test1")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@test2")).to eq(0)
+      expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ... should be the same as the endpoints test
-      ap Kallback.stash_stack
+      ap Kallback.stash_stack if DEBUG_ON
       expect(Kallback.stash_stack.length).to eq(3)
       test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
       expect(test1_stash).to_not be(nil)

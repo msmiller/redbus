@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 13:24:00
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-01 12:00:41
+# @Last Modified time: 2019-11-01 13:09:10
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -62,8 +62,9 @@ class RedisBus
   # ########
   # Build the fan-out list to LPUSH to for an interest
   def fanout_list(interest)
-    interests = @topology.keys.delete_if { |k| !(@topology[k]['interests'] || []).include?(interest) }
-    return(interests.map { |k| interest_hash_tag(k, interest) })
+    interest_name = interest.gsub('#','')
+    interests = @topology.keys.delete_if { |k| !(@topology[k]['interests'] || []).include?(interest_name) }
+    return(interests.map { |k| interest_hash_tag(k, interest_name) })
   end
 
   # Utility
