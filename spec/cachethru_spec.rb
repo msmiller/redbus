@@ -12,7 +12,7 @@ class Frodus
 end
 
 
-RSpec.describe Redbus::Cachethru do
+RSpec.describe RedisBus do
 
   before :each do
   end
@@ -20,13 +20,13 @@ RSpec.describe Redbus::Cachethru do
   context "key generation" do
 
     it "can generate key from hash" do
-      k = Redbus::Cachethru._redis_key( {class: 'Foo', id: 1234} )
+      k = RedisBus::_redis_key( {class: 'Foo', id: 1234} )
       expect(k).to eq( "#{Redbus::CACHETHRU_KEY_ROOT}.Foo.1234" )
     end
 
     it "can generate key from model" do
       f = Frodus.new
-      k = Redbus::Cachethru._redis_key( f )
+      k = RedisBus::_redis_key( f )
       expect(k).to eq( "#{Redbus::CACHETHRU_KEY_ROOT}.Frodus.5678" )
     end
 
@@ -36,28 +36,27 @@ RSpec.describe Redbus::Cachethru do
 
     it "can get an object across an rpc request" do
 
-      # set up
-      $busredis.flushall
-      $busredis.flushdb
       Kallback.reset_globals
-      Redbus::Registration.register_endpoint("@test")
-      Redbus::Lpubsub.clear_channel("@test")
+      setup_test_bus
+      @current_redbus.busredis.flushall
+      @current_redbus.busredis.flushdb
+      @current_redbus.clear_channel("@test1")
 
       # Arm the cachethru send
       cachethru_result = nil
       Thread.new do
         # Wait 1/10th of a second so the responder can spin up
         sleep(0.1)
-        cachethru_result = Redbus::Cachethru.retrieve( 'Frodus', 5678, "@test" )
+        cachethru_result = @current_redbus.retrieve( 'Frodus', 5678, "@test1" )
       end
 
       # This will handle the rpc request and send back data
-      chan, mesg = $subredis.blpop("@test") #, :timeout => Redbus.timeout)
+      chan, mesg = @current_redbus.subredis.blpop("@test1") #, :timeout => Redbus.timeout)
       if mesg
         data = JSON.parse(mesg)
         sub_result = data
         f = Frodus.new
-        Redbus::Cachethru.deposit(f, data['rpc_token'])
+        @current_redbus.deposit(f, data['rpc_token'])
       end
 
       # Wait a beat to let the threads unwind. This won't be needed in the wild, but since
@@ -74,28 +73,28 @@ RSpec.describe Redbus::Cachethru do
     it "can get a json hashed object across an rpc request" do
 
       # set up
-      $busredis.flushall
-      $busredis.flushdb
       Kallback.reset_globals
-      Redbus::Registration.register_endpoint("@test")
-      Redbus::Lpubsub.clear_channel("@test")
+      setup_test_bus
+      @current_redbus.busredis.flushall
+      @current_redbus.busredis.flushdb
+      @current_redbus.clear_channel("@test1")
 
       # Arm the cachethru send
       cachethru_result = nil
       Thread.new do
         # Wait 1/10th of a second so the responder can spin up
         sleep(0.1)
-        cachethru_result = Redbus::Cachethru.retrieve( 'Frodus', 5678, "@test" )
+        cachethru_result = @current_redbus.retrieve( 'Frodus', 5678, "@test1" )
       end
 
       # This will handle the rpc request and send back data
-      chan, mesg = $subredis.blpop("@test") #, :timeout => Redbus.timeout)
+      chan, mesg = @current_redbus.subredis.blpop("@test1") #, :timeout => Redbus.timeout)
       if mesg
         data = JSON.parse(mesg)
         sub_result = data
         f = Frodus.new
         s = { 'id' => 2468, 'hashone' => 1, 'hashtwo' => 2 }.to_json
-        Redbus::Cachethru.deposit(f, data['rpc_token'], nil, s)
+        @current_redbus.deposit(f, data['rpc_token'], nil, s)
       end
 
       # Wait a beat to let the threads unwind. This won't be needed in the wild, but since
@@ -108,17 +107,18 @@ RSpec.describe Redbus::Cachethru do
       expect( cachethru_result.hashone ).to eq( 1 )
       expect( cachethru_result.hashtwo ).to eq( 2 )
     end
+    
     it "can get remove a cached object" do
       # set up
-      $busredis.flushall
-      $busredis.flushdb
       Kallback.reset_globals
-      Redbus::Registration.register_endpoint("@test")
-      Redbus::Lpubsub.clear_channel("@test")
+      setup_test_bus
+      @current_redbus.busredis.flushall
+      @current_redbus.busredis.flushdb
+      @current_redbus.clear_channel("@test1")
 
       f = Frodus.new
-      Redbus::Cachethru.deposit(f)
-      Redbus.cremove( 'Frodus', 5678 )
+      @current_redbus.deposit(f)
+      @current_redbus.cremove( 'Frodus', 5678 )
     end
 
   end # cached objects
