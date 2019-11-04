@@ -1,6 +1,16 @@
 require 'redis'
 require 'awesome_print'
 
+class Frodus
+  def id
+    5678
+  end
+
+  def to_json
+    { id: 5678, ack: 'oop', foo: 'bar' }.to_json
+  end
+end
+
 RSpec.describe RedBus do
 
   LPUBSUB_SPEC_DEBUG_ON = false
@@ -101,6 +111,36 @@ RSpec.describe RedBus do
       expect( counts['published'][@the_year][@the_month] ).to eq(1)
       expect( counts['processed'][@the_year][@the_month] ).to eq(1)
     end
+
+
+    it "can collect stats for getting an object across an rpc request" do
+
+      # Arm the cachethru send
+      cachethru_result = nil
+      Thread.new do
+        # Wait 1/10th of a second so the responder can spin up
+        sleep(0.1)
+        cachethru_result = @current_redbus.retrieve( 'Frodus', 5678, "@test1" )
+      end
+
+      # This will handle the rpc request and send back data
+      chan, mesg = @current_redbus.subredis.blpop("@test1") #, :timeout => Redbus.timeout)
+      if mesg
+        data = JSON.parse(mesg)
+        sub_result = data
+        f = Frodus.new
+        @current_redbus.deposit(f, data['rpc_token'])
+      end
+
+      # Wait a beat to let the threads unwind. This won't be needed in the wild, but since
+      # we're running tests locally it's so blazingly fast it creates race condition
+      sleep(0.25)
+
+      counts = @current_redbus.counts_for( "rpc" )
+      expect( counts['published'][@the_year][@the_month] ).to eq(1)
+      expect( counts['processed'][@the_year][@the_month] ).to eq(1)
+    end
+
   end
 
 end
