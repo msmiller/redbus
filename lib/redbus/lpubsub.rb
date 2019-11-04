@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-04 10:57:30
+# @Last Modified time: 2019-11-04 11:50:41
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -33,6 +33,7 @@ module Redbus
       end
       channel_list.each do |c|
         self.pubredis.lpush c, data.to_json
+        self.bump(c, 'published')
       end
     end
 
@@ -54,6 +55,7 @@ module Redbus
           klass.send(methud, chan, JSON.parse(msg))
         end
       end
+      self.bump(chan, 'processed')
       return msg
     end
 
@@ -102,6 +104,7 @@ module Redbus
               klass.send(methud, chan, JSON.parse(msg))
             end
           end
+          self.bump(chan, 'processed')
           # (sleep(Redbus.poll_delay)) if (Redbus.poll_delay > 0)
 
           # If we're in test mode, we need a clean way to bust out

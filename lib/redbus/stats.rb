@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-12 20:42:13
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-04 10:53:59
+# @Last Modified time: 2019-11-04 11:48:17
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -24,11 +24,13 @@ module Redbus
 
       # Bump a counter for 'published', 'processed', or 'failed'
       def bump(channel, bucket)
-        yr = Date.today.year
-        mo = Date.today.month
-        stats_key = "stats:#{channel}:#{bucket}:#{yr}:#{mo}"
-        # ap stats_key
-        self.busredis.incr(stats_key)
+        if self.gather_stats
+          yr = Date.today.year
+          mo = Date.today.month
+          stats_key = "stats:#{channel}:#{bucket}:#{yr}:#{mo}"
+          # ap stats_key
+          self.busredis.incr(stats_key)
+        end
       end
 
       def counts_for(channel)

@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-08-23 12:58:57
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-04 10:57:56
+# @Last Modified time: 2019-11-04 12:07:04
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -22,6 +22,7 @@ module Redbus
         sleep(0.1) # Give it a tick to let the subscribe code start running
         # We use the list-based publish here so that it only gets picked up by one worker on the endpoint
         self.publish channel, data.merge( {rpc_token: rpc_token} )
+        self.bump('rpc', 'published')
       end
 
       # See: https://github.com/redis/redis-rb#timeouts
@@ -34,10 +35,12 @@ module Redbus
       begin
         # Since we're only expecting one response on a unique key, we can use generic pubsub
         rpc_redis.subscribe_with_timeout(self.timeout, rpc_token) do |on|
-          on.message do |channel, msg|
+          on.message do |rpc_channel, msg|
             data = JSON.parse(msg)
             rpc_redis.unsubscribe(rpc_token) # if it times out, no need to unsub elsewhere
             rpc_redis.close
+            self.bump(channel, 'processed')
+            self.bump('rpc', 'processed')
             return(data)
           end
         end
