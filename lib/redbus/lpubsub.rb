@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 14:10:55
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-04 11:50:41
+# @Last Modified time: 2019-11-04 12:41:05
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -122,7 +122,7 @@ module Redbus
 
     # Shortcut to subscribe to everything registered
     def subscribe_all(threaded=true, callback=nil)
-      Redbus.subscribe_async(Redbus::Registration.subscribe_list, threaded, callback)
+      Redbus.subscribe_async(self.subscribe_list, threaded, callback)
     end
 
   end

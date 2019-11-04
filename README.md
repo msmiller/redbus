@@ -8,6 +8,8 @@
 
 Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and pop messages onto queues. The advantage of this over it's native PUB/SUB is that in a clustered deployment you only want **one** endpoint server for a channel to accept a message. The normal PUB/SUB would have each endpoint server in the cluster see and respond to each message.
 
+The intent is to provide a simple and fast mechanism to impliment an inter-app and/or inter-service message bus across a shared Redis instance. This isn't meant to compete with the likes of AWS SQS or RabbitMQ. It's meant to be lean and mean.
+
 ----
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
@@ -16,6 +18,7 @@ Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and
 * [Installation](#installation)
 * [Channel Namespaces](#channel-namespaces)
 * [Usage](#usage)
+* [Options](#options)
 * [Running in a thread within a Rails App](#running-in-a-thread-within-a-rails-app)
 * [Running as a standalone daemon](#running-as-a-standalone-daemon)
 * [RPC](#rpc)
@@ -29,7 +32,7 @@ Redbus is a Redis-based message bus that uses Redis's LIST mechanism to push and
 
 - Fan-out for interest-based channels
 - RPC mode calls which are blocking and wait for a return value
-- Central registration of channels and subscriptions
+- Central registration of channels and subscriptions based on YAML config files
 - Twitter-esque channel namespace to differentiate "endpoints" from "interests"
 - Uses BLPOP so that only one server in an app cluster processes a message
 - Redis-based inter-service comms means no security issues, no authentication hassles, and no possibility for exposed HTTP endpoints
@@ -45,24 +48,14 @@ gem 'redbus'
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install redbus
-
-***Important: Connecting To Redis***
-
-All Apps and services which use Redbus must connect to the same Redis server. This means you're going to have one Redis server for your code to use for background processing, and another you connect to for the message bus. The way Redis' pub/sub mechanism works, you need different connections for publish and subscribe. The pattern adopted for Redbus is to maintain three permanent connections: 
-
-- One for publushing
-- One for subscribing
-- One for management, registration and statistics gathering
-
-```ruby
-$busredis = Redis.new
-$pubredis = Redis.new
-$subredis = Redis.new
+```bash
+$ gem install redbus
 ```
 
 ## Channel Namespaces
@@ -80,6 +73,25 @@ Redbus uses a Twitter-esque namespace pattern to make it easier to visualize mes
 Redbus can run as either an initializer within a Rails app, or as a standalone worker process.
 
 ***Basic use case***
+
+```ruby
+@yaml_file = 'redbus_topology.yml' # from .../config
+@endpoint = 'test1'
+@redis_url = 'redis://:p4ssw0rd@10.0.1.1:6380/15'
+# Instantiate a new RedBus
+@current_redbus = RedBus.new(@endpoint, @yaml_file, @redis_url)
+
+# Bulk subscribe to everything registered for in the yaml config
+# The first argument determines if this is running async in a thread
+# or inline as a daemon. The second argument is the callback for 
+# processing incoming messages
+@current_redbus.subscribe_all( true, "Kallback::dump")
+```
+
+_Note that the shared Redis instance is passed in as the third argument. If you're running locally in development mode, you can leave this off use Redbus will use the default configuration for the local Redis instance._
+
+And you need a callback to process requests:
+
 ```ruby
 # Rig a callback
 class Kallback
@@ -88,57 +100,59 @@ class Kallback
     ap x
   end
 end
-
-# Rig Redis - you need different connections for pub and sub
-$busredis = Redis.new
-$pubredis = Redis.new
-$subredis = Redis.new
-
-# Set the app's endpoint
-Redbus.endpoint = "my_endpoint"
-
-# Register the endpoint
-Redbus::Registration.register_endpoint
-# Register interests
-Redbus::Registration.register_interest('#users')
-Redbus::Registration.register_interest('#views')
-
-# Bulk subscribe to everything registered for
-Redbus::Lpubsub.subscribe_all( true, "Kallback::dump" )
 ```
+
+Then you need a YAML Configuration:
+
+```yaml
+test1:
+  interests:
+    - interest1
+    - interest2
+test2:
+  interests:
+    - interest2
+    - interest3
+test3:
+  interests:
+```
+
+And that's basically it!
+
+## Options
+
+These can be changed after initialization as:
+
+```ruby
+@current_redbus.option = value
+```
+
+**gather_stats** - The RedBus instance will gather statistics (default: false)
+
+**poll_delay** - This throttles how often to ping Redbus when it's empty (default: 1s)
+
+**timeout** - This is the timeout for single-use subscriptions (default: 5s)
 
 ## Running in a thread within a Rails App
 
 **NOTE:** _The initializer needs to be called `redis_bus.rb` so that it loads after `redis.rb`._
 
-In `.../config/initializers/redis_bus.rb` you can set the configuration and the subscriptions. You then put your handler model in `.../lib`,
+In `.../config/initializers/redbus.rb` you can set the configuration and the subscriptions. You then put your handler model in `.../lib`,
 
 ```ruby
-# .../config/initializers/redis_bus.rb
+# .../config/initializers/redbus.rb
 
-# Instantiate publish and subscribe Redis connections
-$busredis = Redis.new
-$pubredis = Redis.new
-$subredis = Redis.new
+@yaml_file = 'redbus_topology.yml' # from .../config
+@endpoint = 'test1'
+@redis_url = 'redis://:p4ssw0rd@10.0.1.1:6380/15'
+# Instantiate a new RedBus
+@current_redbus = RedBus.new(@endpoint, @yaml_file, @redis_url)
 
-# Required
-Redbus.endpoint = "my_endpoint"     # Unique name for your app's endpoint
-                                    # Note: the '@' prefix isn't required
-# Optional
-Redbus.poll_delay = 1               # Delay between Redis polls (s)
-Redbus.timeout = 5                  # Timeout on 1-shot subscribes (s)
-
-# Register defined endpoint and interests
-Redbus::Registration.register_endpoint
-Redbus::Registration.register_interest("#posts")
-Redbus::Registration.register_interest("#users")
-
-# Now set up the listener, which runs in a backround thread
-Redbus.subscribe_async( 
-    Redbus::Registration.subscribe_list,
-    true, # threaded mode is set
-    "RedbusHandler::perform"
-)
+# Bulk subscribe to everything registered for in the yaml config
+# The first argument determines if this is running async in a thread
+# or inline as a daemon. The second argument is the callback for 
+# processing incoming messages
+@current_redbus.subscribe_all( true, "RedbusHandler::perform" )
 ```
 
 Then set up your handler:
@@ -165,25 +179,11 @@ class RedbusHandler
 end
 ```
 
-_Note that you can have multiple endpoints for a microservice. For instance you could have one for `@email` and one for `@sms`. But at the end of the day there isn't much gain. All you're doing is going from one callback with a switch to two callbacks. So for simplicity sake, just assume one primary endpoint name per app._
+_Note that you can have multiple RedBus instances running for different endpoints in the same app._
 
 ## Running as a standalone daemon 
 
-To run Redbus as a standalone process is basically just taking some of the initializer and moving it to a standalone script, with a few small changes. This example assumes the same `RedbusHandler` is available. 
-
-```ruby
-# .../config/initializers/redis_bus.rb
-
-$busredis = Redis.new
-$pubredis = Redis.new
-$subredis = Redis.new
-
-Redbus.endpoint = "my_endpoint"
-Redbus.poll_delay = 0
-Redbus.timeout = 5
-```
-
-Here's the worker, which gets run as `bundle exec ruby run_redbus.rb`:
+To run Redbus as a standalone process is basically just taking the initializer and moving it to a standalone script, with a few small changes. This example assumes the same `RedbusHandler` is available. 
 
 ```ruby
 # .../run_redbus.rb
@@ -193,36 +193,34 @@ Here's the worker, which gets run as `bundle exec ruby run_redbus.rb`:
 require 'redis'
 require 'redbus'
 
-# Register defined endpoint and interests
-# 
-# When running as a daemon, only the daemon cares about these
-# registrations. So they're no longer needed in the main
-# initializer.
-Redbus::Registration.register_endpoint
-Redbus::Registration.register_interest("#posts")
-Redbus::Registration.register_interest("#users")
+@yaml_file = 'redbus_topology.yml' # from .../config
+@endpoint = 'test1'
+@redis_url = 'redis://:p4ssw0rd@10.0.1.1:6380/15'
+# Instantiate a new RedBus
+@current_redbus = RedBus.new(@endpoint, @yaml_file, @redis_url)
 
 # Now run the listener with threaded mode OFF
 begin
-  Redbus.subscribe_async( 
-      Redbus::Registration.subscribe_list,
-      false, # threaded mode is OFF
-      "RedbusHandler::perform"
-  )
+  @current_redbus.subscribe_all( false, "RedbusHandler::perform" )
 rescue Interrupt => e
   print_exception(e, true)
-  $busredis.close
-  $pubredis.close
-  $subredis.close
+  @current_redbus.close_redis
 end
 ```
 
 ## RPC
 
-Redbus supports making RPC calls across the bus. On the sending side, the following is all that is needed to send an RPC request with a payload to an endpoint (_NOTE: RPC only works to endpoints!_).
+Redbus supports making RPC calls across the bus. For these commands Redbus synthesizes a temporary RPC channel and sends a request to the desired endpoint which includes that channel name as the channel to respond to. The receiving Redbus handler detects and RPC requests, forms a response and publish to the RPC channel that the original sender is listening and waiting on. Once it gets the RPC response it unblocks and code flows as normal - pretty much like with an HTTP request.
+
+On the sending side, the following is all that is needed to send an RPC request with a payload to an endpoint (_NOTE: RPC only works to endpoints!_).
 
 ```ruby
-rpc_result = Redbus::Rpc.publish_rpc( "@channel", { "command" => "do_something", "foo" => "bar" } )
+rpc_result = @current_redbus.publish_rpc( 
+  "@channel", 
+  { "command" => "do_something", 
+    "foo" => "bar"
+  }
+)
 ```
 
 In your receiving App or Service, you need to handle the request in your handler and perform the following to send back a response:
@@ -240,7 +238,7 @@ class RedbusHandler
       if parsed_payload['rpc_token']
         # This is an RPC request
         result = { ack: 'oop' }.to_json
-        $pubredis.publish parsed_payload['rpc_token'], result
+        @current_redbus.publish parsed_payload['rpc_token'], result
       else
         handle_endpoint(parsed_payload)
       end
@@ -258,7 +256,7 @@ end
 
 You can use whatever mechanism you like to encode what you want the RPC call to perform on the receiving end. Returned results can likewise be anything you want, from a simple pass/fail status to complex data objects.
 
-The request times out after `Redbus.timeout` seconds, so this isn't to be used for long-duration requests unless they are to put a job into the background and return a job id so it can be checked on with another RPC call.
+The request times out after `@current_redbus.timeout` seconds, so this isn't to be used for long-duration requests unless they are to put a job into the background and return a job id so it can be checked on with another RPC call.
 
 The intent here is not to impose a message format, but to provide the transport needed to create more complex interactions.
 
@@ -269,7 +267,7 @@ Another feature of Redbus is the ability to use Redis as a temporary object cach
 It's called as follows:
 
 ```ruby
-cachethru_result = Redbus::Cachethru.retrieve(
+cachethru_result = @current_redbus.retrieve(
                     'Frodus', # Object class
                     5678,     # Object ID
                     "@test"   # Channel (endpoints only!)
@@ -289,7 +287,7 @@ class RedbusHandler
 
     channel,payload = args
     f = Frodus.find(parsed_payload['item_id'])
-    Redbus::Cachethru.deposit(f, parsed_payload['rpc_token'])
+    @current_redbus.deposit(f, parsed_payload['rpc_token'])
   end
 
 end
@@ -307,7 +305,7 @@ class RedbusHandler
     channel,payload = args
     f = Frodus.find(parsed_payload['item_id'])
     json_info = { 'name' => f.name, 'role' = f.role }.to_json
-    Redbus::Cachethru.deposit( f, parsed_payload['rpc_token'], 
+    @current_redbus.deposit( f, parsed_payload['rpc_token'], 
                                (Time.now + 10.days),
                                json_info )
   end
@@ -320,7 +318,7 @@ end
 To gather the `published`, `processed`, and `failed` stats for a channel you do the following:
 
 ```
-counts = Redbus::Stats.counts_for( "@test1" )
+counts = @current_redbus.counts_for( "@test1" )
 p counts['published'] # =>
 {
   2019 => {
@@ -331,6 +329,8 @@ p counts['published'] # =>
 ```
 
 This can be useful for determining if messages are flowing properly, or monitoring the amount of traffic running through the system.
+
+_NOTE: By default stats gathering is switched off for new RedBus instances. To switch it on:_ `@current_redbus.gather_stats = true`
 
 ## Development
 

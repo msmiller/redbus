@@ -2,7 +2,7 @@
 # @Author: msmiller
 # @Date:   2019-09-16 12:44:09
 # @Last Modified by:   msmiller
-# @Last Modified time: 2019-11-04 11:06:55
+# @Last Modified time: 2019-11-04 12:55:41
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
@@ -69,6 +69,12 @@ module Redbus
 
     def self.channel_is_interest?(c)
       '#' == c[0]
+    end
+
+    def close_redis
+      self.busredis.close
+      self.pubredis.close
+      self.subredis.close
     end
 
   end
