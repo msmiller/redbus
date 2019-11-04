@@ -20,7 +20,7 @@ end
 def setup_test_bus
   @yaml_file = 'redbus_topology.yml'
   @endpoint = 'test1'
-  @current_redbus = RedisBus.new(@endpoint, @yaml_file)
+  @current_redbus = RedBus.new(@endpoint, @yaml_file)
   @current_redbus.busredis.flushall
   @current_redbus.busredis.flushdb
 end

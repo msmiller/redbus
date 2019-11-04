@@ -1,9 +1,9 @@
 require 'redis'
 require 'awesome_print'
 
-RSpec.describe RedisBus do
+RSpec.describe RedBus do
 
-  DEBUG_ON = false
+  LPUBSUB_SPEC_DEBUG_ON = false
 
   before :each do
     Kallback.reset_globals
@@ -73,7 +73,7 @@ RSpec.describe RedisBus do
       expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      ap Kallback.stash_stack if DEBUG_ON
+      ap Kallback.stash_stack if LPUBSUB_SPEC_DEBUG_ON
       expect(Kallback.stash_stack.length).to eq(3)
       test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
       expect(test1_stash).to_not be(nil)
@@ -82,10 +82,10 @@ RSpec.describe RedisBus do
 
     it "can subscribe_async to interests" do
 
-      p "----" if DEBUG_ON
-      p @current_redbus.fanout_list('interest1') if DEBUG_ON
-      p @current_redbus.fanout_list('interest2') if DEBUG_ON
-      p "----" if DEBUG_ON
+      p "----" if LPUBSUB_SPEC_DEBUG_ON
+      p @current_redbus.fanout_list('interest1') if LPUBSUB_SPEC_DEBUG_ON
+      p @current_redbus.fanout_list('interest2') if LPUBSUB_SPEC_DEBUG_ON
+      p "----" if LPUBSUB_SPEC_DEBUG_ON
 
       # Publish some data, including the exit message
       @current_redbus.publish( "#interest1",  { "foo" => "bar" } )
@@ -113,8 +113,8 @@ RSpec.describe RedisBus do
       expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ...
-      p "========" if DEBUG_ON
-      ap Kallback.stash_stack if DEBUG_ON
+      p "========" if LPUBSUB_SPEC_DEBUG_ON
+      ap Kallback.stash_stack if LPUBSUB_SPEC_DEBUG_ON
       users_stash = Kallback.stash_stack.select{ |x| x[0] == "#interest1_#{@current_redbus.endpoint}"}.first
       expect(users_stash).to_not be(nil)
       expect(users_stash[1]["foo"]).to eq("bar")
@@ -139,7 +139,7 @@ RSpec.describe RedisBus do
       expect(@current_redbus.pubredis.llen("@EXIT")).to eq(0)
 
       # Now lets check the results ... should be the same as the endpoints test
-      ap Kallback.stash_stack if DEBUG_ON
+      ap Kallback.stash_stack if LPUBSUB_SPEC_DEBUG_ON
       expect(Kallback.stash_stack.length).to eq(3)
       test1_stash = Kallback.stash_stack.select{ |x| x[0] == '@test1'}.first
       expect(test1_stash).to_not be(nil)

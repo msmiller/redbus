@@ -1,13 +1,13 @@
 require 'redis'
 require 'awesome_print'
 
-RSpec.describe RedisBus do
+RSpec.describe RedBus do
 
   before :each do
     # In this case we don't want to clear the bus in between ever time
     @yaml_file = 'redbus_topology.yml'
     @endpoint = 'test1'
-    @current_redbus = RedisBus.new(@endpoint, @yaml_file)
+    @current_redbus = RedBus.new(@endpoint, @yaml_file)
   end
 
   context "stats" do

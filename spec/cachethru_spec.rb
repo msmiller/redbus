@@ -12,7 +12,7 @@ class Frodus
 end
 
 
-RSpec.describe RedisBus do
+RSpec.describe RedBus do
 
   before :each do
   end
@@ -20,13 +20,13 @@ RSpec.describe RedisBus do
   context "key generation" do
 
     it "can generate key from hash" do
-      k = RedisBus::_redis_key( {class: 'Foo', id: 1234} )
+      k = RedBus::_redis_key( {class: 'Foo', id: 1234} )
       expect(k).to eq( "#{Redbus::CACHETHRU_KEY_ROOT}.Foo.1234" )
     end
 
     it "can generate key from model" do
       f = Frodus.new
-      k = RedisBus::_redis_key( f )
+      k = RedBus::_redis_key( f )
       expect(k).to eq( "#{Redbus::CACHETHRU_KEY_ROOT}.Frodus.5678" )
     end
 
@@ -107,7 +107,7 @@ RSpec.describe RedisBus do
       expect( cachethru_result.hashone ).to eq( 1 )
       expect( cachethru_result.hashtwo ).to eq( 2 )
     end
-    
+
     it "can get remove a cached object" do
       # set up
       Kallback.reset_globals

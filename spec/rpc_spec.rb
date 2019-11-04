@@ -1,9 +1,9 @@
 require 'redis'
 require 'awesome_print'
 
-RSpec.describe RedisBus do
+RSpec.describe RedBus do
 
-  DEBUG_ON = false
+  RPC_SPEC_DEBUG_ON = false
 
   before :each do
     Kallback.reset_globals
@@ -34,14 +34,14 @@ RSpec.describe RedisBus do
       # This will handle the rpc request and send back data
       chan, mesg = @current_redbus.subredis.blpop("@test") #, :timeout => Redbus.timeout)
       if mesg
-        p "RESPONDING TO: #{chan}, #{mesg} ..." if DEBUG_ON
+        p "RESPONDING TO: #{chan}, #{mesg} ..." if RPC_SPEC_DEBUG_ON
         data = JSON.parse(mesg)
         sub_result = data
         @current_redbus.pubredis.publish data['rpc_token'], { ack: 'oop' }.to_json
-        p "... SENT!" if DEBUG_ON
+        p "... SENT!" if RPC_SPEC_DEBUG_ON
       end
 
-      if DEBUG_ON
+      if RPC_SPEC_DEBUG_ON
         p "----"
         p "sub_result:"
         ap sub_result

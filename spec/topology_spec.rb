@@ -2,9 +2,9 @@ require 'redis'
 require 'awesome_print'
 require 'redbus'
 
-RSpec.describe RedisBus do
+RSpec.describe RedBus do
 
-  DEBUG_ON = false
+  TOPOLOGY_SPEC_DEBUG_ON = false
 
   before :each do
     setup_test_bus
@@ -30,18 +30,18 @@ RSpec.describe RedisBus do
 
 
     it "can generate subscribe_list from topology" do
-      ap @current_redbus.subscribe_list if DEBUG_ON
+      ap @current_redbus.subscribe_list if TOPOLOGY_SPEC_DEBUG_ON
       @yaml_data.keys.each do |k|
-        ap @current_redbus.subscribe_list(k) if DEBUG_ON
+        ap @current_redbus.subscribe_list(k) if TOPOLOGY_SPEC_DEBUG_ON
         tlist = [ "@#{k}"] + (@yaml_data[k]['interests'] || []).map { |kk| "##{kk}_#{k}" }
         expect( @current_redbus.subscribe_list(k) ).to eq(tlist)
       end
     end
 
     it "can generate fanout_list from topology" do
-      ap @current_redbus.fanout_list('interest1') if DEBUG_ON
-      ap @current_redbus.fanout_list('interest2') if DEBUG_ON
-      ap @current_redbus.fanout_list('interest3') if DEBUG_ON
+      ap @current_redbus.fanout_list('interest1') if TOPOLOGY_SPEC_DEBUG_ON
+      ap @current_redbus.fanout_list('interest2') if TOPOLOGY_SPEC_DEBUG_ON
+      ap @current_redbus.fanout_list('interest3') if TOPOLOGY_SPEC_DEBUG_ON
       expect( @current_redbus.fanout_list('interest1') ).to eq(["#interest1_test1"])
       expect( @current_redbus.fanout_list('interest2') ).to eq(["#interest2_test1","#interest2_test2"])
       expect( @current_redbus.fanout_list('interest3') ).to eq(["#interest3_test2"])

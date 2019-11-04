@@ -2,10 +2,10 @@ require 'redis'
 require 'awesome_print'
 require 'redbus'
 
-RSpec.describe Redbus do
+RSpec.describe RedBus do
 
   before :each do
-    @current_redbus = RedisBus.new('test1', nil)
+    @current_redbus = Redbus::RedisBus.new('test1', nil)
   end
 
   context "gem config" do
@@ -16,21 +16,24 @@ RSpec.describe Redbus do
     end
 
     it "can initialize" do
-      expect(@current_redbus.endpoint).to eq('test1')
-      expect(@current_redbus.timeout).to eq(5)
+      expect( @current_redbus.endpoint ).to eq('test1')
+      expect( @current_redbus.timeout ).to eq(5)
       expect( @current_redbus.topology_cfg ).to eq( nil )
     end
 
     it "can change settings" do
-      expect(@current_redbus.endpoint).to eq('test1')
-      expect(@current_redbus.timeout).to eq(5)
+      expect( @current_redbus.endpoint ).to eq('test1')
+      expect( @current_redbus.timeout ).to eq(5)
       expect( @current_redbus.topology_cfg ).to eq( nil )
+      expect( @current_redbus.gather_stats ).to eq( false )
 
-      @other_redbus = RedisBus.new('test1', nil, nil)
+      @other_redbus = RedBus.new('test1', nil, nil)
       @other_redbus.poll_delay = 123
       @other_redbus.timeout = 456
-      expect(@other_redbus.poll_delay).to eq(123)
-      expect(@other_redbus.timeout).to eq(456)
+      @other_redbus.gather_stats = true
+      expect( @other_redbus.poll_delay ).to eq(123)
+      expect( @other_redbus.timeout ).to eq(456)
+      expect( @other_redbus.gather_stats ).to eq(true)
     end
 
   end # gem config
