@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "redis"
 # require "fakeredis"
+# require "mock_redis"
 require "redbus"
 
 ENV["RAILS_ENV"] = "development"
