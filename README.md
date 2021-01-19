@@ -24,6 +24,9 @@ The intent is to provide a simple and fast mechanism to impliment an inter-app a
 * [RPC](#rpc)
 * [Cache-Thru](#cache-thru)
 * [Stats](#stats)
+* [Development](#development)
+* [Testing](#testing)
+* [Caveat Emptor](#caveatemptor)
 
 
 ----
@@ -353,6 +356,10 @@ Because Redbus relies on Redis to act like ... well ... Redis the Rspec code doe
 
 So to test this gem you need to run `redis-server` in another process before calling Rspec. Note that Rspec will flush what's in this Redis instance repeatedly, so make sure you run `redis-server` in a different/throw-away directory so as not to clobber data you may care about.
 
+## Caveat Emptor
+
+I am by no means a Redis expert. This project was something I spun up when a client was having issues with using straight HTTP/RPC for a large microservice-based  deployment. Once I got into it, I found all these other cool things it could do. But it's entirely possible there's stuff in here which is rock-stupid to folks who are more expert. I won't be offended in the least if someone else can show me smarter ways to code pieces of this up.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/msmiller/redbus. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
@@ -364,3 +371,8 @@ The gem is available as open source under the terms of the [MIT License](https:/
 ## Code of Conduct
 
 Everyone interacting in the Redbus project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/msmiller/redbus/blob/master/CODE_OF_CONDUCT.md).
+
+----
+
+Copyright &copy; <a href="https://github.com/msmiller">Mark S. Miller</a> and <a href="http://sharpstonecodewerks.com">Sharp Stone Codewerks</a>
+
