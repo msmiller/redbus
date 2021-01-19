@@ -1,4 +1,14 @@
+#!/usr/bin/ruby
+# @Author: msmiller
+# @Date:   2019-09-16 13:24:00
+# @Last Modified by:   msmiller
+# @Last Modified time: 2019-10-31 10:43:43
+#
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
+
 # This is the main way to listen to a bus
+
+# NOTE: This goes with the original PUBSUB implimentation
 
 module Redbus
   class Async

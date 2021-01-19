@@ -1,3 +1,13 @@
+#!/usr/bin/ruby
+# @Author: msmiller
+# @Date:   2019-09-16 13:24:00
+# @Last Modified by:   msmiller
+# @Last Modified time: 2019-10-31 10:43:43
+#
+# Copyright (c) Sharp Stone Codewerks / Mark S. Miller
+
+# NOTE: Old registartion code - this has been since superceded 
+
 require 'redis'
 require 'awesome_print'
 

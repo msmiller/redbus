@@ -6,6 +6,8 @@
 #
 # Copyright (c) Sharp Stone Codewerks / Mark S. Miller
 
+# NOTE: Old registartion code - this has been since superceded 
+
 require 'yaml'
 
 module Redbus
