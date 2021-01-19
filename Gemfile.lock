@@ -22,9 +22,7 @@ GEM
     i18n (1.8.7)
       concurrent-ruby (~> 1.0)
     minitest (5.14.3)
-    mock_redis (0.27.3)
-      ruby2_keywords
-    rake (10.5.0)
+    rake (13.0.3)
     redis (4.2.5)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
@@ -39,7 +37,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.1)
-    ruby2_keywords (0.0.2)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     zeitwerk (2.4.2)
@@ -50,8 +47,7 @@ PLATFORMS
 DEPENDENCIES
   awesome_print
   bundler (~> 1.17)
-  mock_redis
-  rake (~> 10.0)
+  rake (~> 13.0)
   redbus!
   rspec (~> 3.8)
 
