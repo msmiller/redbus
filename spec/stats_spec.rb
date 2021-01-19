@@ -8,6 +8,7 @@ RSpec.describe RedBus do
     @yaml_file = 'redbus_topology.yml'
     @endpoint = 'test1'
     @current_redbus = RedBus.new(@endpoint, @yaml_file)
+    @current_redbus.gather_stats = true
   end
 
   context "stats" do

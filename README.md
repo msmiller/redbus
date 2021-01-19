@@ -206,6 +206,11 @@ rescue Interrupt => e
   print_exception(e, true)
   @current_redbus.close_redis
 end
+
+def print_exception(exception, explicit)
+    puts "[#{explicit ? 'EXPLICIT' : 'INEXPLICIT'}] #{exception.class}: #{exception.message}"
+    puts exception.backtrace.join("\n")
+end
 ```
 
 ## RPC
@@ -317,7 +322,9 @@ end
 
 To gather the `published`, `processed`, and `failed` stats for a channel you do the following:
 
-```
+```ruby
+@current_redbus.gather_stats = true
+# ... do some redbus stuff ...
 counts = @current_redbus.counts_for( "@test1" )
 p counts['published'] # =>
 {
